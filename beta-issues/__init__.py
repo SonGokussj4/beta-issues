@@ -14,13 +14,18 @@ def homepage():
 
 @app.route('/dashboard/')
 def dashboard():
-    flash("Welcome to dashboard")
+    # flash("Welcome to dashboard")
     return render_template('dashboard.html', TOPIC_DICT=TOPIC_DICT)
 
 
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html', error=e)
+
+
+@app.route('/login/', methods=['GET', 'POST'])  # /?variable=this (post)
+def login():
+    return render_template('login.html')
 
 
 if __name__ == '__main__':
