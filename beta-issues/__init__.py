@@ -69,17 +69,26 @@ def homepage():
 def dashboard():
     db = get_db()
     cur = db.cursor()
-    issues = cur.execute("SELECT * FROM issues")
-    return render_template('dashboard.html', TOPIC_DICT=TOPIC_DICT, issues=issues)
+    issues = cur.execute("SELECT * FROM issues").fetchall()
+    resolved, unresolved = [], []
+    for row in issues:
+        idx, issue, description = row
+        found = cur.execute("SELECT * FROM resolvedIssues WHERE issue = ?", [issue]).fetchall()
+        if len(found) > 0:
+            resolved.append(row)
+        else:
+            unresolved.append(row)
+    return render_template('dashboard.html', TOPIC_DICT=TOPIC_DICT, resolved=resolved, unresolved=unresolved)
 
 
 @app.route('/load_changes/', methods=['POST'])
 def load_changes():
     # text = request.form.get('text')
-    db = get_db()
-    cur = db.cursor()
 
     ANSAfile = request.files.get('AnsaFile')
+    if ANSAfile.filename == '':
+        flash('No selected file')
+        return redirect(request.url)
     filename = secure_filename(ANSAfile.filename)
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     ANSAfile.save(filepath)
@@ -87,6 +96,9 @@ def load_changes():
     os.remove(filepath)
 
     METAfile = request.files.get('MetaFile')
+    if METAfile.filename == '':
+        flash('No selected file')
+        return redirect(request.url)
     filename = secure_filename(METAfile.filename)
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     METAfile.save(filepath)
@@ -95,6 +107,8 @@ def load_changes():
 
     issues = ANSA_issues + META_issues
 
+    db = get_db()
+    cur = db.cursor()
     count = 0
     for issue in issues:
         found = cur.execute("SELECT EXISTS(SELECT 1 FROM resolvedIssues WHERE issue=? LIMIT 1)", [issue]).fetchone()[0]
