@@ -111,8 +111,11 @@ def load_changes():
     cur = db.cursor()
     count = 0
     for issue in issues:
-        found = cur.execute("SELECT EXISTS(SELECT 1 FROM resolvedIssues WHERE issue=? LIMIT 1)", [issue]).fetchone()[0]
+        found = cur.execute("SELECT EXISTS(SELECT 1 FROM resolvedIssues WHERE issue = ? LIMIT 1)", [issue]).fetchone()[0]
         if found == 0:  # not in the list for now
+            unresolved = cur.execute("SELECT * FROM issues where issue = ?", [issue]).fetchall()
+            if len(unresolved) > 0:
+                flash("Our issue resolved: {} - {}".format(unresolved[0][1], unresolved[0][2]))
             cur.execute("INSERT OR IGNORE INTO resolvedIssues (issue) VALUES (?)", [issue])
             count += 1
 
