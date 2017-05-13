@@ -14,12 +14,11 @@
 </div> -->
 
 <header>
-
-  <div class="navbar-header">
-    <a class="navbar-brand" href="/">INDEX</a>
-  </div>
-
   <div class="container-fluid">
+
+    <div class="navbar-header">
+      <a class="navbar-brand" href="/">INDEX</a>
+    </div>
 
     <a href="/dashboard"><button type="button" class="btn btn-primary" aria-label="Left Align"
     style="margin-top: 5px; margin-bottom: 5px; height: 44px; margin-right: 15px;">
@@ -27,10 +26,19 @@
     </button></a>
 
     <ul class="nav navbar-nav navbar-right">
+{#       <button type="button" class="btn btn-primary" data-toggle="modal" data-target=".bs-example-modal-lg" style="margin-top: 5px; margin-bottom: 5px; height: 44px, margin-right: 15px;">Log In</button> #}
+      {% if session.logged_in %}
+      <li><a class="glyphicon glyphicon-log-out" href="{{ url_for('logout') }}"> Logout </a></li>
 
-      <li><a href="#">Link</a></li>
+      {% else %}
+      <li><a class="glyphicon glyphicon-log-in" href="{{ url_for('login') }}"> Login </a></li>
+      <li><a class="glyphicon glyphicon-pencil" href="{{ url_for('register_page') }}"> Register</a></li>
+
+      {% endif %}
+
       <li class="dropdown">
-        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Dropdown <span class="caret"></span></a>
+        <a href="#" class="dropdown-toggle glyphicon glyphicon-briefcase" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+        {% if session.logged_in %} {{ session.username }} {% else %} Guest {% endif %} <span class="caret"></span></a>
         <ul class="dropdown-menu">
           <li><a href="#">Action</a></li>
           <li><a href="#">Another action</a></li>
@@ -39,8 +47,6 @@
           <li><a href="#">Separated link</a></li>
         </ul>
       </li>
-
-      <button type="button" class="btn btn-primary" data-toggle="modal" data-target=".bs-example-modal-lg" style="margin-top: 5px; margin-bottom: 5px; height: 44px, margin-right: 15px;">Log In</button>
 
       <div class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel">
         <div class="modal-dialog modal-lg" role="document">

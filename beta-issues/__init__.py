@@ -1,8 +1,11 @@
 import os
-from flask import Flask, render_template, flash, request, url_for, redirect
+from flask import Flask, render_template, flash, request, url_for, redirect, session, g, abort
 from content_management import content
-
-from dbconnect import connection
+from functools import wraps
+from wtforms import Form, TextField, PasswordField, BooleanField, validators
+from passlib.hash import sha256_crypt
+import gc
+import sqlite3
 
 TOPIC_DICT = content()
 
@@ -17,6 +20,41 @@ app.config.update(dict(
 ))
 
 
+def connect_db():
+    """Connects to the specific database."""
+    rv = sqlite3.connect(app.config['DATABASE'])
+    rv.row_factory = sqlite3.Row
+    return rv
+
+
+def get_db():
+    """Opens a new database connection of there is none yet for the current application context."""
+    if not hasattr(g, 'sqlite_db'):
+        g.sqlite_db = connect_db()
+    return g.sqlite_db
+
+
+@app.teardown_appcontext
+def close_db(error):
+    """Closes the database again at the end of the request."""
+    if hasattr(g, 'sqlite_db'):
+        g.sqlite_db.close()
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html', error=e)
+
+
+def login_required(f):
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        if "logged_in" in session:
+            return f(*args, **kwargs)
+        else:
+            flash("You need to login first")
+            return redirect(url_for('login'))
+    return wrap
+
 @app.route('/')
 def homepage():
     return render_template('main.html')
@@ -24,46 +62,117 @@ def homepage():
 
 @app.route('/dashboard/')
 def dashboard():
-    # flash("Welcome to dashboard")
-    return render_template('dashboard.html', TOPIC_DICT=TOPIC_DICT)
+    db = get_db()
+    cur = db.cursor()
+    issues = cur.execute("SELECT * FROM issues")
+    return render_template('dashboard.html', TOPIC_DICT=TOPIC_DICT, issues=issues)
 
 
-@app.errorhandler(404)
-def page_not_found(e):
-    return render_template('404.html', error=e)
+@app.route('/add_issue/', methods=['POST'])
+def add_issue():
+    if not session.get('logged_in'):
+        abort(401)
+    db = get_db()
+    cur = db.cursor()
+
+    cur.execute("SELECT * FROM issues WHERE issue = ?", [request.form.get('issue')])
+    existing = cur.fetchall()
+    if len(existing) > 0:
+        flash("This issue already exists...")
+        return redirect(url_for('dashboard'))
+
+    cur.execute("INSERT INTO issues (issue, description) VALUES (?, ?)",
+        (request.form.get('issue'), request.form.get('description')))
+    db.commit()
+
+    flash('New issue was successfully posted')
+    return redirect(url_for('dashboard'))
 
 
 @app.route('/login/', methods=['GET', 'POST'])  # /?variable=this (post)
 def login():
     error = None
     try:
+        db = get_db()
+        cur = db.cursor()
         if request.method == 'POST':
-            attempted_username = request.form.get('username')
-            attempted_password = request.form.get('password')
+            cur.execute("SELECT * FROM users WHERE username = ?",
+                (request.form.get('username'), ))
 
-            flash(attempted_username)
-            flash(attempted_password)
+            data = cur.fetchone()
+            username, password = data[1], data[2]
 
-            if attempted_username == 'admin' and attempted_password == 'password':
-                flash("CORRECT LOGIN")
+            if sha256_crypt.verify(request.form.get('password'), password):
+                session['logged_in'] = True
+                session['username'] = username
+
+                flash("Your are now logged in")
                 return redirect(url_for('dashboard'))
+
             else:
-                error = "Invalid credentials. Try Again."
+                error = "Invalid credentials, try again."
+
+        gc.collect()
 
         return render_template('login.html', error=error)
 
     except Exception as error:
-        flash(error)  # TODO: remove, debugging purposes
+        error = "Invalid credentials, try again."
         return render_template('login.html', error=error)
+
+
+class RegistrationForm(Form):
+    username = TextField('Username', [validators.Length(min=4, max=20)])
+    email = TextField('Email Address', [validators.Length(min=6, max=50)])
+    password = PasswordField('Password', [validators.Required(),
+                                          validators.EqualTo('confirm', message="Passwords must match.")])
+    confirm = PasswordField('Repeat Password')
+    accept_tos = BooleanField('I accept the Terms of Service and the Privacy notice.',
+        [validators.Required()])
+
 
 
 @app.route('/register/', methods=['GET', 'POST'])  # /?variable=this (post)
 def register_page():
     try:
-        c, conn = connection()
-        return("Okay")
+        form = RegistrationForm(request.form)
+
+        if request.method == 'POST' and form.validate():
+            username = form.username.data
+            email = form.email.data
+            password = sha256_crypt.encrypt(str(form.password.data))
+            db = get_db()
+            cur = db.execute("""SELECT * FROM users WHERE username = "{}" """.format(username))
+            found_users = cur.fetchall()
+            if len(found_users) > 0:
+                flash("That username is already taken, please choose another")
+                return render_template('register.html', form=form)
+            else:
+                db.execute("INSERT INTO users (username, password, email) VALUES (?, ?, ?)",
+                    (username, password, email))
+                db.commit()
+                flash("Thanks for registering.")
+                gc.collect()  # garbage collection, clear unused cache memory, important
+
+                session['logged_in'] = True
+                session['username'] = username
+
+                return redirect(url_for('dashboard'))
+
+        return render_template('register.html', form=form)
+
     except Exception as e:
-        return(str(e))
+        return("Erra: {}".format(e))
+
+
+@app.route('/logout/')
+@login_required
+def logout():
+    session.pop('logged_in', None)
+    # session.clear()
+    flash("You have been logged out.")
+    gc.collect()
+    return redirect(url_for('dashboard'))
 
 
 if __name__ == '__main__':

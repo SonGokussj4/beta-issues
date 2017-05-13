@@ -1,0 +1,67 @@
+{% block body %}
+
+<form action="{{ url_for('add_issue') }}" method="post" class="form-horizontal" style="margin-top: 5%;">
+
+  <div class="form-group">
+    <label for="inputIssue" class="col-sm-2 control-label">Issue</label>
+    <div class="col-sm-10">
+      <input name="issue" type="text" class="form-control" id="inputIssue" placeholder="Add a Issue number">
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="inputDescription" class="col-sm-2 control-label">Description</label>
+    <div class="col-sm-10">
+      <input name="description" type="text" class="form-control" id="inputDescription" placeholder="Add a Description...">
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-sm-offset-2 col-sm-10">
+      <button type="submit" class="btn btn-default">Add Issue</button>
+    </div>
+  </div>
+
+</form>
+
+{% endblock %}
+
+
+
+{# {% block body %}
+  <h2>ISSUES:</h2>
+  {% if session.logged_in %}
+    <form action="{{ url_for('add_issue') }}" method="post" class="add-entry">
+      <dl>
+        <dt>Issue title*:
+        <dd><input type="text" size="30" name="title">
+        <dt>Date dd.mm.rrrr*:
+        <dd><input type="text" size="30" name="datum">
+        <dt>Priority (1-5):
+        <dd><input type="text" size="5" name="priority">
+        <dt>Description*:
+        <dd><input type="text" size="60" name="description">
+        <dt>Additional comment*:
+        <dd><textarea rows="5" cols="50" name="comment"></textarea>
+        <dd><input type="submit" value="Share">
+      </dl>
+    </form>
+  {% else %}
+    <p>You can't add any new issues until you log in.</p>
+  {% endif %}
+  <ul class="entries">
+  {% for issue in issues %}
+    <li><h2>{{ issue.title }}</h2>{{ issue.description|safe }}</li>
+    <li>Priority: {{ issue.priority }}, Date: {{ issue.date }}</li>
+    <li>{{ issue.comment }}</li>
+  {% else %}
+    <li><em>Unbelievable.  No issues here so far</em></li>
+  {% endfor %}
+  </ul>
+{% endblock %} #}
+
+
+{# This template extends the layout.html template from above to display the
+   messages. Note that the for loop iterates over the messages we passed in with
+   the render_template() function. Notice that the form is configured to to
+   submit to the add_entry view function and use POST as HTTP method: #}

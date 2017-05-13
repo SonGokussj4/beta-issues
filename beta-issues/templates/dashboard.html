@@ -7,23 +7,32 @@
   <!-- Nav tabs -->
   <ul class="nav nav-tabs" role="tablist">
     <li role="presentation" class="active"><a href="#status" aria-controls="status" role="tab" data-toggle="tab">Status</a></li>
-    <li role="presentation"><a href="#add_new" aria-controls="add_new" role="tab" data-toggle="tab">Add New</a></li>
+    <li role="presentation"><a href="#add_issue" aria-controls="add_issue" role="tab" data-toggle="tab">Add New Issue</a></li>
     <li role="presentation"><a href="#load_changes" aria-controls="load_changes" role="tab" data-toggle="tab">Load Changes</a></li>
+    <li role="presentation"><a href="#test_topics" aria-controls="test_topics" role="tab" data-toggle="tab">Test Topics</a></li>
     <li role="presentation"><a href="#about" aria-controls="about" role="tab" data-toggle="tab">About</a></li>
   </ul>
 
   <!-- Tab panes -->
   <div class="tab-content">
-    <!-- <div role="tabpanel" class="tab-pane fade in active" id="status">Status</div> -->
     <div role="tabpanel" class="tab-pane fade in active" id="status">
+      {% include '/includes/issues_status.html' %}
+    </div>
+    <div role="tabpanel" class="tab-pane fade" id="add_issue">
+      {% if session.logged_in %}
+        {% include '/includes/issues_add_new.html' %}
+      {% else %}
+        <p>You have to be logged in</p>
+      {% endif %}
+    </div>
+    <div role="tabpanel" class="tab-pane fade" id="load_changes">Load Changes</div>
+    <div role="tabpanel" class="tab-pane fade" id="test_topics">
       <ul>
         {% for t in TOPIC_DICT["Status"] %}
           <li><a href="{{ t[1] }}">{{ t[0] }}</a></li>
         {% endfor %}
       </ul>
     </div>
-    <div role="tabpanel" class="tab-pane fade" id="add_new">Adding New</div>
-    <div role="tabpanel" class="tab-pane fade" id="load_changes">Load Changes</div>
     <div role="tabpanel" class="tab-pane fade" id="about">About this app</div>
   </div>
 
