@@ -25,7 +25,13 @@
         <p>You have to be logged in</p>
       {% endif %}
     </div>
-    <div role="tabpanel" class="tab-pane fade" id="load_changes">Load Changes</div>
+    <div role="tabpanel" class="tab-pane fade" id="load_changes">
+      {% if session.logged_in %}
+        {% include '/includes/load_changes.html' %}
+      {% else %}
+        <p>You have to be logged in</p>
+      {% endif %}
+    </div>
     <div role="tabpanel" class="tab-pane fade" id="test_topics">
       <ul>
         {% for t in TOPIC_DICT["Status"] %}

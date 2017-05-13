@@ -1,5 +1,7 @@
 import os
+from static.scripts.beta_pdf_miner import get_issues_list
 from flask import Flask, render_template, flash, request, url_for, redirect, session, g, abort
+from werkzeug.utils import secure_filename
 from content_management import content
 from functools import wraps
 from wtforms import Form, TextField, PasswordField, BooleanField, validators
@@ -16,7 +18,8 @@ app.config.update(dict(
     DATABASE=os.path.join(app.root_path, 'mydb.db'),
     SECRET_KEY='development key',
     USERNAME='admin',
-    PASSWORD='default'
+    PASSWORD='default',
+    UPLOAD_FOLDER=os.path.join(app.root_path, 'static', 'upload'),
 ))
 
 
@@ -40,6 +43,7 @@ def close_db(error):
     if hasattr(g, 'sqlite_db'):
         g.sqlite_db.close()
 
+
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html', error=e)
@@ -55,6 +59,7 @@ def login_required(f):
             return redirect(url_for('login'))
     return wrap
 
+
 @app.route('/')
 def homepage():
     return render_template('main.html')
@@ -66,6 +71,41 @@ def dashboard():
     cur = db.cursor()
     issues = cur.execute("SELECT * FROM issues")
     return render_template('dashboard.html', TOPIC_DICT=TOPIC_DICT, issues=issues)
+
+
+@app.route('/load_changes/', methods=['POST'])
+def load_changes():
+    # text = request.form.get('text')
+    db = get_db()
+    cur = db.cursor()
+
+    ANSAfile = request.files.get('AnsaFile')
+    filename = secure_filename(ANSAfile.filename)
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    ANSAfile.save(filepath)
+    ANSA_issues = get_issues_list(filepath, 'Ansa')
+    os.remove(filepath)
+
+    METAfile = request.files.get('MetaFile')
+    filename = secure_filename(METAfile.filename)
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    METAfile.save(filepath)
+    META_issues = get_issues_list(filepath, 'Meta')
+    os.remove(filepath)
+
+    issues = ANSA_issues + META_issues
+
+    count = 0
+    for issue in issues:
+        found = cur.execute("SELECT EXISTS(SELECT 1 FROM resolvedIssues WHERE issue=? LIMIT 1)", [issue]).fetchone()[0]
+        if found == 0:  # not in the list for now
+            cur.execute("INSERT OR IGNORE INTO resolvedIssues (issue) VALUES (?)", [issue])
+            count += 1
+
+    db.commit()
+
+    flash('{} new issues resolved.'.format(count))
+    return redirect(url_for('dashboard'))
 
 
 @app.route('/add_issue/', methods=['POST'])
