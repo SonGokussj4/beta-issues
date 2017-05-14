@@ -35,7 +35,7 @@ def get_issues_list(pdf_filename, pdf_type='Ansa'):
                         matches.append(lt_obj.get_text())
     issues = []
     for inc in matches:
-        match = re.findall(r'([\S]+?\d+)', inc)
+        match = re.findall(r'([\w-]+?\d+)', inc)
         [issues.append(each) for each in match]
 
     return issues
