@@ -2,14 +2,11 @@ import os
 from static.scripts.beta_pdf_miner import get_issues_list
 from flask import Flask, render_template, flash, request, url_for, redirect, session, g, abort, Markup
 from werkzeug.utils import secure_filename
-from content_management import content
 from functools import wraps
 from wtforms import Form, TextField, PasswordField, BooleanField, validators
 from passlib.hash import sha256_crypt
 import gc
 import sqlite3
-
-TOPIC_DICT = content()
 
 app = Flask(__name__)
 app.config.from_object(__name__)  # load config from this file, flaskr.py
@@ -90,22 +87,6 @@ def help_page():
     return render_template('help.html')
 
 
-@app.route('/dashboard/')
-def dashboard():
-    db = get_db()
-    cur = db.cursor()
-    issues = cur.execute("SELECT * FROM issues").fetchall()
-    resolved, unresolved = [], []
-    for row in issues:
-        idx, issue, description = row
-        found = cur.execute("SELECT * FROM resolvedIssues WHERE issue = ?", [issue]).fetchall()
-        if len(found) > 0:
-            resolved.append(row)
-        else:
-            unresolved.append(row)
-    return render_template('dashboard.html', TOPIC_DICT=TOPIC_DICT, resolved=resolved, unresolved=unresolved)
-
-
 @app.route('/issue_status/')
 def issue_status():
     cur, db = get_db(cursor=True)
@@ -180,7 +161,6 @@ def upload_changes():
             flash("Can't recognize this file: {}. I has to have ANSA or META in it's name...".format(
                 filename), 'danger')
             return redirect(request.url)
-
         os.remove(filepath)
 
     cur, db = get_db(cursor=True)
@@ -193,8 +173,10 @@ def upload_changes():
             # Check if this issue is not in your database of issues, if yes, notify user about it
             unresolved = cur.execute("SELECT * FROM issues where issue = ?", [issue]).fetchall()
             if len(unresolved) > 0:
-                msg = Markup("<strong>Our issue resolved!</strong>   Issue: [{}] Description: [{}]".format(
-                    unresolved[0][1], unresolved[0][2]))
+                _, issue_num, issue_descr = unresolved[0]  # uid, issue, description
+                msg = Markup("<p><strong>Our issue resolved!</strong></p>"
+                             "<p>Issue: {}</p>"
+                             "<p>Description: {}</p>".format(issue_num, issue_descr))
                 flash(msg, 'success')
             # Update the database of resolved issues (from PDF)
             cur.execute("INSERT OR IGNORE INTO resolvedIssues (issue) VALUES (?)", [issue])
