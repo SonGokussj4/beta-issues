@@ -145,7 +145,7 @@ def add_issue():
                 (request.form.get('issue'), request.form.get('description')))
     db.commit()
 
-    flash('New issue was successfully posted')
+    flash('New issue was successfully added into database.', 'success')
     return redirect(url_for('issue_add_new'))
 
 
@@ -163,7 +163,7 @@ def upload_changes():
     file_list = request.files.getlist('UploadFiles')
 
     if file_list[0].filename == '':
-        flash('No file(s) selected')
+        flash('No file(s) selected', 'warning')
         return redirect(url_for('upload_release_changes'))
 
     issues = []
@@ -177,27 +177,34 @@ def upload_changes():
         elif 'meta' in filename.lower():
             issues.extend(get_issues_list(filepath, 'Meta'))
         else:
-            flash("Can't recognize this file: {}. I has to have ANSA or META in it's name...".format(filename))
+            flash("Can't recognize this file: {}. I has to have ANSA or META in it's name...".format(
+                filename), 'danger')
             return redirect(request.url)
 
         os.remove(filepath)
 
     cur, db = get_db(cursor=True)
     count = 0
+    # Iterate over found issues in PDF
     for issue in issues:
+        # Check if issue is not already in database, if not (found == 0), continue
         found = cur.execute("SELECT EXISTS(SELECT 1 FROM resolvedIssues WHERE issue = ? LIMIT 1)", [issue]).fetchone()[0]
-        if found == 0:  # not in the list for now
+        if found == 0:
+            # Check if this issue is not in your database of issues, if yes, notify user about it
             unresolved = cur.execute("SELECT * FROM issues where issue = ?", [issue]).fetchall()
             if len(unresolved) > 0:
-                flash("Our issue resolved: {} - {}".format(unresolved[0][1], unresolved[0][2]))
+                msg = Markup("<strong>Our issue resolved!</strong>   Issue: [{}] Description: [{}]".format(
+                    unresolved[0][1], unresolved[0][2]))
+                flash(msg, 'success')
+            # Update the database of resolved issues (from PDF)
             cur.execute("INSERT OR IGNORE INTO resolvedIssues (issue) VALUES (?)", [issue])
-            count += 1
+            count += 1  # count the number of newly added (not already there) issues into ResolvedIssues db
     db.commit()
     gc.collect()
 
     msg = Markup("<p>{} resolved issues found in selected document(s).</p>"
                  "<p><strong>{}</strong> new issues added to database.</p>".format(len(issues), count))
-    flash(msg)
+    flash(msg, 'success')
     return redirect(url_for('upload_release_changes'))
 
 
@@ -217,7 +224,7 @@ def login():
             if sha256_crypt.verify(request.form.get('password'), password):
                 session['logged_in'] = True
                 session['username'] = username
-                flash("Your are now logged in")
+                flash("Your are now logged in", 'success')
                 return redirect(url_for('issue_status'))
             else:
                 error = "Invalid credentials, try again."
