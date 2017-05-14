@@ -1,6 +1,6 @@
 import os
 from static.scripts.beta_pdf_miner import get_issues_list
-from flask import Flask, render_template, flash, request, url_for, redirect, session, g, abort
+from flask import Flask, render_template, flash, request, url_for, redirect, session, g, abort, Markup
 from werkzeug.utils import secure_filename
 from content_management import content
 from functools import wraps
@@ -32,6 +32,22 @@ def login_required(f):
             flash("You need to login first")
             return redirect(url_for('login'))
     return wrap
+
+
+def init_db():
+    cur, db = get_db(cursor=True)
+    with app.open_resource('schema.sql', mode='r') as f:
+        # Reads schema.sql and injects it into db
+        cur.executescript(f.read())
+    # Has to be commited after commands
+    db.commit()
+
+
+@app.cli.command('initdb')
+def initdb_command():
+    """Initializes the database. Can be done by cmd: $flask initdb."""
+    init_db()
+    print('Initialized the database.')
 
 
 def connect_db():
@@ -143,7 +159,7 @@ def upload_release_changes():
 
 
 @app.route('/upload_release_changes/', methods=['GET', 'POST'])
-def load_changes():
+def upload_changes():
     file_list = request.files.getlist('UploadFiles')
 
     if file_list[0].filename == '':
@@ -179,7 +195,9 @@ def load_changes():
     db.commit()
     gc.collect()
 
-    flash('{} new resolved issues added to database.'.format(count))
+    msg = Markup("<p>{} resolved issues found in selected document(s).</p>"
+                 "<p><strong>{}</strong> new issues added to database.</p>".format(len(issues), count))
+    flash(msg)
     return redirect(url_for('upload_release_changes'))
 
 
