@@ -123,7 +123,7 @@ def add_issue():
     existing = cur.fetchall()
     if len(existing) > 0:
         flash("This issue already exists...")
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('issue_add_new'))
 
     cur.execute("INSERT INTO issues (issue, description) VALUES (?, ?)",
                 (request.form.get('issue'), request.form.get('description')))
@@ -200,7 +200,7 @@ def login():
                 session['logged_in'] = True
                 session['username'] = username
                 flash("Your are now logged in")
-                return redirect(url_for('dashboard'))
+                return redirect(url_for('issue_status'))
             else:
                 error = "Invalid credentials, try again."
         gc.collect()
@@ -246,7 +246,7 @@ def register_page():
                 session['logged_in'] = True
                 session['username'] = username
 
-                return redirect(url_for('dashboard'))
+                return redirect(url_for('issue_status'))
 
         return render_template('register.html', form=form)
 
@@ -259,9 +259,9 @@ def register_page():
 def logout():
     session.pop('logged_in', None)
     # session.clear()
-    flash("You have been logged out.")
+    flash("You have been logged out.", "info")
     gc.collect()
-    return redirect(url_for('dashboard'))
+    return redirect(url_for('issue_status'))
 
 
 if __name__ == '__main__':

@@ -2,6 +2,19 @@
 
 {% block body %}
 
-<p>This is main page. Don't know what to add here :-D Sorry...</p>
+<div class="container-fluid">
+  <p>This site is mainly for Evektor company. We are using ANSA/META software from greek company BETA CAE.</p>
 
+  <p>BETA rolls updates monthly, always releasing their:
+    <ul><em>ANSA_release_notes.pdf</em></ul>
+    <ul><em>META_release_notes.pdf</em></ul>
+  which contain fields of resolved incidents in format:
+    <ul><em>[ Resolved Incident: ANSA-16523]</em></ul></p>
+
+  <p>But sometimes more than one issues in line, sometimes without the brackets or <em>Resolved Incident</em> text, sometimes the incident is in format <em>META-34655</em> or <em>#59631</em> or just a number.</p>
+
+  <p>The purpose of this WebApp is to <strong>upload</strong> these PDF files, <strong>save issues</strong> into database and <strong>compare</strong> resolved issues with <strong>our issues</strong> that were added by <em>Add New Issue</em> tab in above navigation.</p>
+
+  <p>Result is a <a href="{{ url_for('issue_status') }}"><button class="btn btn-xs btn-default">comprehensive table</button></a> indicating which of our issues are resolved and which are still waiting...</p>
+</div>
 {% endblock %}
