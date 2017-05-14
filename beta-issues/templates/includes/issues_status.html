@@ -16,6 +16,17 @@
         <th>{{ description }}</th>
       </tr>
     {% endfor %}
+  </tbody>
+</table>
+
+<table class="table table-hover" style="margin-top: 5%;">
+  <thead>
+    <tr>
+      <th>Issue</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
     {% for data in resolved %}
       {% set issue = data[1] %}
       {% set description = data[2] %}
