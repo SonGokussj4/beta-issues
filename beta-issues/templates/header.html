@@ -7,41 +7,107 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">  <!-- full size of site -->
   <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
   <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/fileinput.min.css') }}" media="all" />
+  <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/custom.css') }}" media="all" />
   <script src="{{ url_for('static', filename='css/fileinput.min.js') }}"></script>
-  <!-- <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}"> -->
+  <link rel="shortcut icon" href="{{ url_for('static', filename='pictures/favicon.png') }}">
 </head>
 
 <!-- <div class="page-header">
   <h1>Beta-Issues <small>Issue manager between Evektor & BETA CAE</small></h1>
 </div> -->
-
-
-    <a href="/dashboard"><button type="button" class="btn btn-primary" aria-label="Left Align"
-    style="margin-top: 5px; margin-bottom: 5px; height: 44px; margin-right: 15px;">
-      <span class="glyphicon glyphicon-edit" aria-hidden="true"> Add Issue</span>
-    </button></a>
-
-{#     <div class="btn-group" role="group" aria-label="...">
-      <a href="{{ url_for('dashboard') }}"><button type="button" class="btn btn-default">Issues status</button></a>
-      <a href=""><button type="button" class="btn btn-default">New EVE issue</button></a>
-      <a href=""><button type="button" class="btn btn-default">Load BETA changelogs</button></a>
-    </div> #}
-
-
+<header>
+<nav class="navbar navbar-default" role="navigation" style="width: 80%; left: 10%">
+  <div class="navbar-header">
+    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </button>
+  </div>
+  <div class="navbar-collapse collapse">
+    <ul class="nav navbar-nav">
+      <li>
+        <a href="{{ url_for('homepage') }}">
+          <button type="button" class="btn btn-primary">
+            <span class="glyphicon glyphicon-home"></span>
+            <span aria-hidden="true">Home</span>
+          </button>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('help_page') }}">
+          <button type="button" class="btn btn-primary">
+            <span class="glyphicon glyphicon-question-sign"></span>
+            <span aria-hidden="true">Help</span>
+          </button>
+        </a>
+      </li>
+    </ul>
+    <ul class="nav navbar-nav navbar-center">
+        <li>
+          <a href="{{ url_for('issue_status') }}">
+            <button type="button" class="btn btn-primary">
+            <span class="glyphicon glyphicon-list"></span>
+              <span aria-hidden="true">Issues Status</span>
+            </button>
+          </a>
+        </li>
+        <li>
+          <a href="{{ url_for('issue_add_new') }}">
+            <button type="button" class="btn btn-primary">
+              <span class="glyphicon glyphicon-plus"></span>
+              <span aria-hidden="true">Add New Issue</span>
+            </button>
+          </a>
+        </li>
+        <li>
+          <a href="{{ url_for('upload_release_changes') }}">
+            <button type="button" class="btn btn-primary">
+            <span class="glyphicon glyphicon-upload"></span>
+              <span aria-hidden="true">Upload Release Notes</span>
+            </button>
+          </a>
+        </li>
+    </ul>
     <ul class="nav navbar-nav navbar-right">
-{#       <button type="button" class="btn btn-primary" data-toggle="modal" data-target=".bs-example-modal-lg" style="margin-top: 5px; margin-bottom: 5px; height: 44px, margin-right: 15px;">Log In</button> #}
       {% if session.logged_in %}
-      <li><a class="glyphicon glyphicon-log-out" href="{{ url_for('logout') }}"> Logout </a></li>
+      <li>
+        <a href="{{ url_for('logout') }}">
+          <button type="button" class="btn btn-danger">
+            <span class="glyphicon glyphicon-log-out"></span>
+            Logout
+          </button>
+        </a>
+      </li>
 
       {% else %}
-      <li><a class="glyphicon glyphicon-log-in" href="{{ url_for('login') }}"> Login </a></li>
-      <li><a class="glyphicon glyphicon-pencil" href="{{ url_for('register_page') }}"> Register</a></li>
+      <li>
+        <a href="{{ url_for('login') }}">
+          <button type="button" class="btn btn-success">
+            <span class="glyphicon glyphicon-log-in"></span>
+            Login
+          </button>
+        </a>
+      </li>
+      <li>
+        <a href="{{ url_for('register_page') }}">
+          <button type="button" class="btn btn-success">
+            <span class="glyphicon glyphicon-pencil"></span>
+            Register
+          </button>
+        </a>
+      </li>
 
       {% endif %}
 
       <li class="dropdown">
-        <a href="#" class="dropdown-toggle glyphicon glyphicon-briefcase" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-        {% if session.logged_in %} {{ session.username }} {% else %} Guest {% endif %} <span class="caret"></span></a>
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+          <button type="button" class="btn btn-default">
+            <span class="glyphicon glyphicon-user"></span>
+            {% if session.logged_in %} &nbsp;{{ session.username }} {% else %} Guest {% endif %} <span class="caret"></span>
+          </button>
+        </a>
         <ul class="dropdown-menu">
           <li><a href="#">Action</a></li>
           <li><a href="#">Another action</a></li>
@@ -50,20 +116,9 @@
           <li><a href="#">Separated link</a></li>
         </ul>
       </li>
-
-      <div class="modal fade bs-example-modal-lg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel">
-        <div class="modal-dialog modal-lg" role="document">
-          <div class="modal-content">
-            {# {% include 'login.html' %} #}
-            ss
-          </div>
-        </div>
-      </div>
-
     </ul>
-
   </div>
-
+</nav>
 </header>
 
 <body>
@@ -89,4 +144,6 @@
 
   <script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
   <script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/fileinput.min.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/custom.js') }}"></script>
 </body>

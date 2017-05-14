@@ -1,0 +1,31 @@
+{% extends "header.html" %}
+
+{% block body %}
+
+<h3>Upload βETA release notes</h3>
+
+<div class="row">
+  <form action="{{ url_for('load_changes') }}" enctype=multipart/form-data method="post" class="form-horizontal" enctype="multipart/form-data">
+
+    <div class="form-group">
+      <label for="UploadFiles" class="col-sm-2 control-label">Select (Multiple) Release Notes PDF(s):</label>
+      <div class="col-sm-8">
+        <label class="control-label">Example: ANSA_release_notes.pdf, META_Release_Notes_v16.x.x.pdf, ANSA_v17.1.1_Release_Notes.pdf, ...</label>
+        <input id="input-1a" name=UploadFiles type="file" class="file file-loading" data-show-upload="false" data-show-preview="true" data-allowed-file-extensions='["pdf"]' multiple>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="col-sm-offset-2 col-sm-8">
+        <button type="submit" class="btn btn-default" id="loading-forever-btn" data-loading-text="<i class='fa fa-cog fa-spin'></i> Processing PDF(s), please wait...">Upload</button>
+    </div>
+
+  </form>
+</div>
+
+<div class="row">
+  <p class="text-center" style="font-size: 1.5em;">Current number of uploaded issues:</p>
+  <p class="text-center" style="font-size: 1.5em;"><spam class="bg-success">{{ resolved_issues_in_db }}</spam></p>
+</div>
+
+{% endblock %}

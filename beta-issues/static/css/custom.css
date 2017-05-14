@@ -1,0 +1,12 @@
+@media (min-width: 768px) {
+  .navbar-nav.navbar-center {
+    position: absolute;
+    left: 50%;
+    transform: translatex(-50%);
+  }
+}
+
+h3 {
+    margin-top: 3%;
+    margin-bottom: 3%;
+}

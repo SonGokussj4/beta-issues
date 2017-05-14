@@ -23,6 +23,17 @@ app.config.update(dict(
 ))
 
 
+def login_required(f):
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        if "logged_in" in session:
+            return f(*args, **kwargs)
+        else:
+            flash("You need to login first")
+            return redirect(url_for('login'))
+    return wrap
+
+
 def connect_db():
     """Connects to the specific database."""
     rv = sqlite3.connect(app.config['DATABASE'])
@@ -30,10 +41,13 @@ def connect_db():
     return rv
 
 
-def get_db():
+def get_db(cursor=False):
     """Opens a new database connection of there is none yet for the current application context."""
     if not hasattr(g, 'sqlite_db'):
         g.sqlite_db = connect_db()
+    if cursor:
+        c = g.sqlite_db.cursor()
+        return c, g.sqlite_db
     return g.sqlite_db
 
 
@@ -49,20 +63,15 @@ def page_not_found(e):
     return render_template('404.html', error=e)
 
 
-def login_required(f):
-    @wraps(f)
-    def wrap(*args, **kwargs):
-        if "logged_in" in session:
-            return f(*args, **kwargs)
-        else:
-            flash("You need to login first")
-            return redirect(url_for('login'))
-    return wrap
-
-
 @app.route('/')
+@app.route('/index/')
 def homepage():
     return render_template('main.html')
+
+
+@app.route('/help/')
+def help_page():
+    return render_template('help.html')
 
 
 @app.route('/dashboard/')
@@ -81,34 +90,83 @@ def dashboard():
     return render_template('dashboard.html', TOPIC_DICT=TOPIC_DICT, resolved=resolved, unresolved=unresolved)
 
 
-@app.route('/load_changes/', methods=['POST'])
+@app.route('/issue_status/')
+def issue_status():
+    cur, db = get_db(cursor=True)
+    issues = cur.execute("SELECT * FROM issues").fetchall()
+    resolved, unresolved = [], []
+
+    for row in issues:
+        idx, issue, description = row
+        found = cur.execute("SELECT * FROM resolvedIssues WHERE issue = ?", [issue]).fetchall()
+        if len(found) > 0:
+            resolved.append(row)
+        else:
+            unresolved.append(row)
+    return render_template('issue_status.html', resolved=resolved, unresolved=unresolved)
+
+
+@app.route('/issue_add_new/')
+@login_required
+def issue_add_new():
+    return render_template('issue_add_new.html')
+
+
+@app.route('/add_issue/', methods=['GET', 'POST'])
+def add_issue():
+    if not session.get('logged_in'):
+        abort(401)
+
+    cur, db = get_db(cursor=True)
+    cur.execute("SELECT * FROM issues WHERE issue = ?", [request.form.get('issue')])
+
+    existing = cur.fetchall()
+    if len(existing) > 0:
+        flash("This issue already exists...")
+        return redirect(url_for('dashboard'))
+
+    cur.execute("INSERT INTO issues (issue, description) VALUES (?, ?)",
+                (request.form.get('issue'), request.form.get('description')))
+    db.commit()
+
+    flash('New issue was successfully posted')
+    return redirect(url_for('issue_add_new'))
+
+
+@app.route('/upload_release_changes/')
+@login_required
+def upload_release_changes():
+    cur, db = get_db(cursor=True)
+    data = cur.execute("SELECT * FROM resolvedIssues")
+    issues = len(data.fetchall())
+    return render_template('upload_release_changes.html', resolved_issues_in_db=issues)
+
+
+@app.route('/upload_release_changes/', methods=['GET', 'POST'])
 def load_changes():
-    # text = request.form.get('text')
+    file_list = request.files.getlist('UploadFiles')
 
-    ANSAfile = request.files.get('AnsaFile')
-    if ANSAfile.filename == '':
-        flash('No selected file')
-        return redirect(request.url)
-    filename = secure_filename(ANSAfile.filename)
-    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    ANSAfile.save(filepath)
-    ANSA_issues = get_issues_list(filepath, 'Ansa')
-    os.remove(filepath)
+    if file_list[0].filename == '':
+        flash('No file(s) selected')
+        return redirect(url_for('upload_release_changes'))
 
-    METAfile = request.files.get('MetaFile')
-    if METAfile.filename == '':
-        flash('No selected file')
-        return redirect(request.url)
-    filename = secure_filename(METAfile.filename)
-    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    METAfile.save(filepath)
-    META_issues = get_issues_list(filepath, 'Meta')
-    os.remove(filepath)
+    issues = []
+    for file in file_list:
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config.get('UPLOAD_FOLDER'), filename)
+        file.save(filepath)
 
-    issues = ANSA_issues + META_issues
+        if 'ansa' in filename.lower():
+            issues.extend(get_issues_list(filepath, 'Ansa'))
+        elif 'meta' in filename.lower():
+            issues.extend(get_issues_list(filepath, 'Meta'))
+        else:
+            flash("Can't recognize this file: {}. I has to have ANSA or META in it's name...".format(filename))
+            return redirect(request.url)
 
-    db = get_db()
-    cur = db.cursor()
+        os.remove(filepath)
+
+    cur, db = get_db(cursor=True)
     count = 0
     for issue in issues:
         found = cur.execute("SELECT EXISTS(SELECT 1 FROM resolvedIssues WHERE issue = ? LIMIT 1)", [issue]).fetchone()[0]
@@ -118,32 +176,11 @@ def load_changes():
                 flash("Our issue resolved: {} - {}".format(unresolved[0][1], unresolved[0][2]))
             cur.execute("INSERT OR IGNORE INTO resolvedIssues (issue) VALUES (?)", [issue])
             count += 1
-
     db.commit()
+    gc.collect()
 
-    flash('{} new issues resolved.'.format(count))
-    return redirect(url_for('dashboard'))
-
-
-@app.route('/add_issue/', methods=['POST'])
-def add_issue():
-    if not session.get('logged_in'):
-        abort(401)
-    db = get_db()
-    cur = db.cursor()
-
-    cur.execute("SELECT * FROM issues WHERE issue = ?", [request.form.get('issue')])
-    existing = cur.fetchall()
-    if len(existing) > 0:
-        flash("This issue already exists...")
-        return redirect(url_for('dashboard'))
-
-    cur.execute("INSERT INTO issues (issue, description) VALUES (?, ?)",
-        (request.form.get('issue'), request.form.get('description')))
-    db.commit()
-
-    flash('New issue was successfully posted')
-    return redirect(url_for('dashboard'))
+    flash('{} new resolved issues added to database.'.format(count))
+    return redirect(url_for('upload_release_changes'))
 
 
 @app.route('/login/', methods=['GET', 'POST'])  # /?variable=this (post)
@@ -162,18 +199,14 @@ def login():
             if sha256_crypt.verify(request.form.get('password'), password):
                 session['logged_in'] = True
                 session['username'] = username
-
                 flash("Your are now logged in")
                 return redirect(url_for('dashboard'))
-
             else:
                 error = "Invalid credentials, try again."
-
         gc.collect()
-
         return render_template('login.html', error=error)
 
-    except Exception as error:
+    except Exception as e:
         error = "Invalid credentials, try again."
         return render_template('login.html', error=error)
 
@@ -186,7 +219,6 @@ class RegistrationForm(Form):
     confirm = PasswordField('Repeat Password')
     accept_tos = BooleanField('I accept the Terms of Service and the Privacy notice.',
         [validators.Required()])
-
 
 
 @app.route('/register/', methods=['GET', 'POST'])  # /?variable=this (post)
