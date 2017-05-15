@@ -72,7 +72,7 @@
         </li>
     </ul>
     <ul class="nav navbar-nav navbar-right">
-      {% if session.logged_in %}
+      {% if session.logged_in -%}
       <li>
         <a href="{{ url_for('logout') }}">
           <button type="button" class="btn btn-danger">
@@ -82,7 +82,7 @@
         </a>
       </li>
 
-      {% else %}
+      {% else -%}
       <li>
         <a href="{{ url_for('login') }}">
           <button type="button" class="btn btn-success">
@@ -100,13 +100,13 @@
         </a>
       </li>
 
-      {% endif %}
+      {% endif -%}
 
       <li class="dropdown">
         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
           <button type="button" class="btn btn-default">
             <span class="glyphicon glyphicon-user"></span>
-            {% if session.logged_in %} &nbsp;{{ session.username }} {% else %} Guest {% endif %} <span class="caret"></span>
+            {% if session.logged_in -%} &nbsp;{{ session.username }} {% else -%} Guest {% endif -%} <span class="caret"></span>
           </button>
         </a>
         <ul class="dropdown-menu">
@@ -129,24 +129,25 @@
 
   <div class="container" style="min-height:100% max-width=80%">
 
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
+  {% with messages = get_flashed_messages(with_categories=true) -%}
+    {% if messages -%}
       <ul class="flashes list-unstyled">
-      {% for category, message in messages %}
-        {% if category in ['success', 'info', 'warning', 'danger'] %}
+      {% for category, message in messages -%}
+        {% if category in ['success', 'info', 'warning', 'danger'] -%}
           <div class="alert alert-{{ category }} alert-dismissable" role="alert">
-        {% else %}
+        {% else -%}
           <div class="alert alert-warning alert-dismissable" role="alert">
-        {% endif %}
+        {% endif -%}
         <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
           {{ message }}
         </div>
-      {% endfor %}
+      {% endfor -%}
       </ul>
-    {% endif %}
-  {% endwith %}
+    {% endif -%}
+  {% endwith -%}
 
-  {% block body %}{% endblock %}
+  {% block body -%}
+  {% endblock -%}
 
   </div>
 

@@ -1,31 +1,38 @@
-{% extends "header.html" %}
+{% extends "header.html" -%}
 
-{# .nav-tabs li.tab5{
-    width:10%;
-} #}
-
-{% block body %}
+{% block body -%}
 
 <h3>Unresolved Issues</h3>
 <form method=post action="{{ url_for('tbl_del_row') }}">
-<table class="table table-hover">
+<table id="issues" class="table table-hover">
   <thead>
     <tr>
-      <th>Issue</th>
-      <th>Description</th>
-      <th>Edit</th>
+      <th id="issue">Issue</th>
+      <th id="descr">Description</th>
+      {% if session.logged_in -%}
+      <th id="edit">Edit</th>
+      {% endif %}
     </tr>
   </thead>
   <tbody>
-    {% for data in unresolved %}
-      {% set issue = data[1] %}
-      {% set description = data[2] %}
+    {% for data in unresolved -%}
+      {% set issue = data[1] -%}
+      {% set description = data[2] -%}
       <tr>
         <td><spam style="font-family: monospace;">{{ issue }}</spam></td>
         <td>{{ description }}</td>
-        <td><button name="remove_issue" value="{{ issue }}" type="submit" class="btn btn-xs glyphicon glyphicon-edit"></button></td>
+        {% if session.logged_in -%}
+          <td>
+            <a><button name="remove_issue" value="{{ issue }}" type="submit" class="btn btn-xs btn-danger" data-toggle="tooltip" data-placement="top" title="Remove issue: {{ issue }}">
+              <span class="glyphicon glyphicon-remove"></span>
+            </button></a>
+            <a><button name="edit_issue" value="{{ issue }}" type="submit" class="btn btn-xs btn-success" data-toggle="tooltip" data-placement="top" title="Modify field">
+              <span class="glyphicon glyphicon-edit"></span>
+            </button></a>
+          </td>
+        {% endif -%}
       </tr>
-    {% endfor %}
+    {% endfor -%}
   </tbody>
 </table>
 </form>
@@ -39,14 +46,14 @@
     </tr>
   </thead>
   <tbody>
-    {% for data in resolved %}
-      {% set issue = data[1] %}
-      {% set description = data[2] %}
+    {% for data in resolved -%}
+      {% set issue = data[1] -%}
+      {% set description = data[2] -%}
       <tr class="success">
         <td><spam style="font-family: monospace;">{{ issue }}</spam></td>
         <td>{{ description }}</td>
       </tr>
-    {% endfor %}
+    {% endfor -%}
   </tbody>
 </table>
 

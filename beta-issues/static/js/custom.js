@@ -7,3 +7,9 @@ $('#loading-forever-btn').click(function () {
         btn.prop('value', 'still going..')
     }, 1000);
 });
+
+// Shows tooltip above selected element. Usage:
+// <element data-toggle="tooltip" data-placement="top" title="Shown text">
+$(document).ready(function(){
+    $('[data-toggle="tooltip"]').tooltip();
+});
