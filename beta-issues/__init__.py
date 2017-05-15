@@ -265,9 +265,20 @@ def register_page():
 @login_required
 def logout():
     session.pop('logged_in', None)
-    # session.clear()
     flash("You have been logged out.", "info")
     gc.collect()
+    return redirect(url_for('issue_status'))
+
+
+@app.route('/issue_status/', methods=['GET', 'POST'])
+def tbl_del_row():
+    issue = request.form.get('remove_issue')
+    cur, db = get_db(cursor=True)
+    cur.execute("SELECT * FROM issues WHERE issue = ? LIMIT 1", [issue])
+    res = dict(cur.fetchone())
+    flash("Issue DELETED: {}".format(res.get('issue')), 'danger')
+    cur.execute("DELETE FROM issues WHERE issue = ?", [res.get('issue')])
+    db.commit()
     return redirect(url_for('issue_status'))
 
 
