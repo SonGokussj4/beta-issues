@@ -5,6 +5,7 @@ from werkzeug.utils import secure_filename
 from functools import wraps
 from wtforms import Form, TextField, PasswordField, BooleanField, validators
 from passlib.hash import sha256_crypt
+import datetime
 import gc
 import sqlite3
 
@@ -209,7 +210,8 @@ def upload_changes():
     cur, db = get_db(cursor=True)
     count = 0
     # Iterate over found issues in PDF
-    for issue in issues:
+    for issue_tuple in issues:
+        issue, ver = issue_tuple
         # Check if issue is not already in database, if not (found == 0), continue
         found = cur.execute("SELECT EXISTS(SELECT 1 FROM resolved_issues WHERE issue = ? LIMIT 1)", [issue]).fetchone()[0]
         if found == 0:
@@ -222,7 +224,8 @@ def upload_changes():
                              "<p>Description: {}</p>".format(issue_num, issue_descr))
                 flash(msg, 'success')
             # Update the database of resolved issues (from PDF)
-            cur.execute("INSERT OR IGNORE INTO resolved_issues (issue) VALUES (?)", [issue])
+            cur.execute("INSERT OR IGNORE INTO resolved_issues (issue, version, datum) VALUES (?, ?, ?)",
+                [issue, ver, datetime.datetime.today().strftime('%Y-%m-%d')])
             count += 1  # count the number of newly added (not already there) issues into resolved_issues db
     db.commit()
     gc.collect()
