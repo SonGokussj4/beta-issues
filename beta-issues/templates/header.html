@@ -32,6 +32,8 @@
     </button>
   </div>
   <div class="navbar-collapse collapse">
+
+    {# NAVBAR - LEFT #}
     <ul class="nav navbar-nav">
       <li>
         <a href="{{ url_for('homepage') }}">
@@ -50,20 +52,14 @@
         </a>
       </li>
     </ul>
+
+    {# NAVBAR - CENTER #}
     <ul class="nav navbar-nav navbar-center">
         <li>
           <a href="{{ url_for('issue_status') }}">
             <button type="button" class="btn btn-primary">
             <span class="glyphicon glyphicon-list"></span>
               <span aria-hidden="true">Issues Status</span>
-            </button>
-          </a>
-        </li>
-        <li>
-          <a href="{{ url_for('issue_add_new') }}">
-            <button type="button" class="btn btn-primary">
-              <span class="glyphicon glyphicon-plus"></span>
-              <span aria-hidden="true">Add New Issue</span>
             </button>
           </a>
         </li>
@@ -76,50 +72,46 @@
           </a>
         </li>
     </ul>
+
+    {# NAVBAR - RIGHT #}
     <ul class="nav navbar-nav navbar-right">
-      {% if session.logged_in -%}
-      <li>
-        <a href="{{ url_for('logout') }}">
-          <button type="button" class="btn btn-danger">
-            <span class="glyphicon glyphicon-log-out"></span>
-            Logout
-          </button>
-        </a>
-      </li>
-
-      {% else -%}
-      <li>
-        <a href="{{ url_for('login') }}">
-          <button type="button" class="btn btn-success">
-            <span class="glyphicon glyphicon-log-in"></span>
-            Login
-          </button>
-        </a>
-      </li>
-      <li>
-        <a href="{{ url_for('register_page') }}">
-          <button type="button" class="btn btn-success">
-            <span class="glyphicon glyphicon-pencil"></span>
-            Register
-          </button>
-        </a>
-      </li>
-
-      {% endif -%}
-
       <li class="dropdown">
         <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
-          <button type="button" class="btn btn-default">
-            <span class="glyphicon glyphicon-user"></span>
-            {% if session.logged_in -%} &nbsp;{{ session.username }} {% else -%} Guest {% endif -%} <span class="caret"></span>
-          </button>
+          {% if session.logged_in -%}
+            <button type="button" class="btn btn-success">
+              <span class="glyphicon glyphicon-user"></span>
+              {{ session.username }}
+          {% else -%}
+            <button type="button" class="btn btn-default">
+              <span class="glyphicon glyphicon-user"></span>
+              Guest
+          {% endif -%}
+              <span class="caret"></span>
+            </button>
         </a>
-        <ul class="dropdown-menu">
-          <li><a href="#">Action</a></li>
-          <li><a href="#">Another action</a></li>
-          <li><a href="#">Something else here</a></li>
-          <li role="separator" class="divider"></li>
-          <li><a href="#">Separated link</a></li>
+        <ul class="dropdown-menu dropdown-menu-right">
+          {% if not session.logged_in -%}
+          <li>
+            <a href="{{ url_for('login') }}" style='padding-top: 10px; padding-bottom: 10px;'>
+                <span class="glyphicon glyphicon-log-in"></span>
+                Login
+            </a>
+          </li>
+          <li>
+            <a href="{{ url_for('register_page') }}" style='padding-top: 10px; padding-bottom: 10px;'>
+                <span class="glyphicon glyphicon-pencil"></span>
+                Register
+            </a>
+          </li>
+          {% endif -%}
+          {% if session.logged_in -%}
+            <li>
+              <a href="{{ url_for('logout') }}" style='padding-top: 10px; padding-bottom: 10px;'>
+                  <span class="glyphicon glyphicon-log-out glyphicon-th-list"></span>
+                  Logout
+              </a>
+            </li>
+          {% endif -%}
         </ul>
       </li>
     </ul>
@@ -161,4 +153,5 @@
   <script type="text/javascript" src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
   <script type="text/javascript" src="{{ url_for('static', filename='js/fileinput.min.js') }}"></script>
   <script type="text/javascript" src="{{ url_for('static', filename='js/custom.js') }}"></script>
+
 </body>

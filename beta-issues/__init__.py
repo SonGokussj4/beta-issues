@@ -1,5 +1,7 @@
 import os
-from static.scripts.beta_pdf_miner import get_issues_list
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.curdir, 'static', 'scripts')))
+from beta_pdf_miner import get_issues_list
 from flask import Flask, render_template, flash, request, url_for, redirect, session, g, abort, Markup
 from werkzeug.utils import secure_filename
 from functools import wraps
@@ -13,12 +15,12 @@ app.config.from_object(__name__)  # load config from this file, flaskr.py
 # Load default config and override config from an environment variable
 app.config.update(dict(
     DATABASE=os.path.join(app.root_path, 'mydb.db'),
+    SCHEMA=os.path.join(app.root_path, 'schema.sql'),
     SECRET_KEY='development key',
     USERNAME='admin',
     PASSWORD='default',
     UPLOAD_FOLDER=os.path.join(app.root_path, 'static', 'upload'),
 ))
-
 
 def login_required(f):
     @wraps(f)
@@ -33,9 +35,10 @@ def login_required(f):
 
 def init_db():
     cur, db = get_db(cursor=True)
-    with app.open_resource('schema.sql', mode='r') as f:
+    with app.open_resource(app.config['SCHEMA'], mode='r') as f:
         # Reads schema.sql and injects it into db
-        cur.executescript(f.read())
+        contents = f.read()
+        cur.executescript(contents)
     # Has to be commited after commands
     db.commit()
 
@@ -43,8 +46,9 @@ def init_db():
 @app.cli.command('initdb')
 def initdb_command():
     """Initializes the database. Can be done by cmd: $flask initdb."""
+    print('Initialising the database')
     init_db()
-    print('Initialized the database.')
+    print('Database initialized.')
 
 
 def connect_db():
@@ -94,8 +98,8 @@ def issue_status():
     resolved, unresolved = [], []
 
     for row in issues:
-        idx, issue, description = row
-        found = cur.execute("SELECT * FROM resolvedIssues WHERE issue = ?", [issue]).fetchall()
+        idx, issue, description, datum, author, details = row
+        found = cur.execute("SELECT * FROM resolved_issues WHERE issue = ?", [issue]).fetchall()
         if len(found) > 0:
             resolved.append(row)
         else:
@@ -116,25 +120,31 @@ def add_issue():
 
     cur, db = get_db(cursor=True)
     cur.execute("SELECT * FROM issues WHERE issue = ?", [request.form.get('issue')])
-
     existing = cur.fetchall()
+
     if len(existing) > 0:
         flash("This issue already exists...")
         return redirect(url_for('issue_add_new'))
 
-    cur.execute("INSERT INTO issues (issue, description) VALUES (?, ?)",
-                (request.form.get('issue'), request.form.get('description')))
+    print(request.form.__dict__)
+    cur.execute("INSERT INTO issues (issue, description, datum, author, details) VALUES (?, ?, ?, ?, ?)", (
+        request.form.get('issue'),
+        request.form.get('description'),
+        request.form.get('datum'),
+        request.form.get('author'),
+        request.form.get('details')
+    ))
     db.commit()
 
     flash('New issue was successfully added into database.', 'success')
-    return redirect(url_for('issue_add_new'))
+    return redirect(url_for('issue_status'))
 
 
 @app.route('/upload_release_changes/')
 @login_required
 def upload_release_changes():
     cur, db = get_db(cursor=True)
-    data = cur.execute("SELECT * FROM resolvedIssues")
+    data = cur.execute("SELECT * FROM resolved_issues")
     issues = len(data.fetchall())
     return render_template('upload_release_changes.html', resolved_issues_in_db=issues)
 
@@ -168,7 +178,7 @@ def upload_changes():
     # Iterate over found issues in PDF
     for issue in issues:
         # Check if issue is not already in database, if not (found == 0), continue
-        found = cur.execute("SELECT EXISTS(SELECT 1 FROM resolvedIssues WHERE issue = ? LIMIT 1)", [issue]).fetchone()[0]
+        found = cur.execute("SELECT EXISTS(SELECT 1 FROM resolved_issues WHERE issue = ? LIMIT 1)", [issue]).fetchone()[0]
         if found == 0:
             # Check if this issue is not in your database of issues, if yes, notify user about it
             unresolved = cur.execute("SELECT * FROM issues where issue = ?", [issue]).fetchall()
@@ -179,8 +189,8 @@ def upload_changes():
                              "<p>Description: {}</p>".format(issue_num, issue_descr))
                 flash(msg, 'success')
             # Update the database of resolved issues (from PDF)
-            cur.execute("INSERT OR IGNORE INTO resolvedIssues (issue) VALUES (?)", [issue])
-            count += 1  # count the number of newly added (not already there) issues into ResolvedIssues db
+            cur.execute("INSERT OR IGNORE INTO resolved_issues (issue) VALUES (?)", [issue])
+            count += 1  # count the number of newly added (not already there) issues into resolved_issues db
     db.commit()
     gc.collect()
 
@@ -247,7 +257,7 @@ def register_page():
                 db.execute("INSERT INTO users (username, password, email) VALUES (?, ?, ?)",
                     (username, password, email))
                 db.commit()
-                flash("Thanks for registering.")
+                flash("Thanks for registering.", 'success')
                 gc.collect()  # garbage collection, clear unused cache memory, important
 
                 session['logged_in'] = True
@@ -271,8 +281,9 @@ def logout():
 
 
 @app.route('/issue_status/', methods=['GET', 'POST'])
-def tbl_del_row():
+def issue_modify():
     issue = request.form.get('remove_issue')
+
     cur, db = get_db(cursor=True)
     cur.execute("SELECT * FROM issues WHERE issue = ? LIMIT 1", [issue])
     res = dict(cur.fetchone())

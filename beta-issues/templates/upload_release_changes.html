@@ -10,8 +10,8 @@
     <div class="form-group">
       <label for="UploadFiles" class="col-sm-2 control-label">Select (Multiple) Release Notes PDF(s):</label>
       <div class="col-sm-8">
-        <label class="control-label">Example: ANSA_release_notes.pdf, META_Release_Notes_v16.x.x.pdf, ANSA_v17.1.1_Release_Notes.pdf, ...</label>
-        <input id="input-1a" name=UploadFiles type="file" class="file file-loading" data-show-upload="false" data-show-preview="true" data-allowed-file-extensions='["pdf"]' multiple>
+        <label class="control-label" style="padding-bottom: 5px;">Example: ANSA_release_notes.pdf, META_Release_Notes_v16.x.x.pdf, ANSA_v17.1.1_Release_Notes.pdf, ...</label>
+        <input id="input-1a" name=UploadFiles type="file" class="file-loading" multiple>
       </div>
     </div>
 
@@ -24,8 +24,9 @@
 </div>
 
 <div class="row">
+  <div id="kv-error-2" style="margin-top:10px;"></div>
   <p class="text-center" style="font-size: 1.5em;">Current number of uploaded issues:</p>
-  <p class="text-center" style="font-size: 1.5em;"><spam class="bg-success">{{ resolved_issues_in_db }}</spam></p>
+  <p class="text-center" style="font-size: 1.5em;"><spam class="bg-success" style="padding: 5px;">{{ resolved_issues_in_db }}</spam></p>
 </div>
 
 {% endblock %}

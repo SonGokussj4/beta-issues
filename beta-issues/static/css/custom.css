@@ -16,6 +16,9 @@ h3 {
     padding-left: 10px;
 }
 
-table#issues #issue {width: 20%;}
-table#issues #descr {width: 70%;}
-table#issues #edit {width: 10%;}
+div#issue-panel {margin-top: 50px;}
+table#issues #issue {width: 10%;}
+table#issues #descr {width: 55%;}
+table#issues #date {width: 10%;}
+table#issues #author {width: 10%;}
+table#issues #modify {width: 15%;}

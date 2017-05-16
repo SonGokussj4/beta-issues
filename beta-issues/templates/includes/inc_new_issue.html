@@ -1,0 +1,52 @@
+{% block body %}
+
+{# <style>
+  .form-group div {padding-bottom: 5px;}
+</style> #}
+
+<form action="{{ url_for('add_issue') }}" method="post" class="form-horizontal" style="margin-top: 5%;">
+
+  <div class="form-group">
+    <label for="inpIssue" class="col-sm-2 control-label">Issue *</label>
+    <div class="col-sm-2">
+      <input name="issue" type="text" class="form-control" id="inpIssue" placeholder="ANSA-43653">
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="inpAuthor" class="col-sm-2 control-label">Author *</label>
+    <div class="col-sm-2">
+      <input name="author" type="text" class="form-control" id="inpAuthor" placeholder="jVerner">
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="inpDate" class="col-sm-2 control-label">Date *</label>
+    <div class="col-sm-2">
+      <input name="datum" type="text" class="form-control" id="inpDate" placeholder="RRRR-MM-DD">
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="inpDescription" class="col-sm-2 control-label">Small Description *</label>
+    <div class="col-sm-10">
+      <input name="description" type="text" class="form-control" id="inpDescription" placeholder="Ansa has a problem with xxx. We would like to have a button that does yyy.">
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label for="inpDetails" class="col-sm-2 control-label">Details (optional)</label>
+    <div class="col-sm-10">
+      <textarea name="details" type="text" rows="8" class="form-control" id="inpDetails" placeholder="Add details... Email communication for example."></textarea>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <div class="col-sm-offset-2 col-sm-10">
+      <button type="submit" class="btn btn-success"><span class="glyphicon glyphicon-plus"></span> Add Issue to the Database</button>
+    </div>
+  </div>
+
+</form>
+
+{% endblock %}

@@ -1,16 +1,26 @@
-DROP TABLE if exists entries;
-CREATE TABLE entries (
+DROP TABLE if exists users;
+CREATE TABLE users (
     id INTEGER PRIMARY KEY autoincrement,
-    title TEXT NOT NULL,
-    'text' TEXT NOT NULL
+    username TEXT NOT NULL,
+    password TEXT NOT NULL,
+    email TEXT NOT NULL,
+    settings TEXT
 );
 
 DROP TABLE if exists issues;
 CREATE TABLE issues (
     id INTEGER PRIMARY KEY autoincrement,
-    title TEXT NOT NULL,
-    priority INTEGER NOT NULL,
-    'datum' text NOT NULL,
-    'description' TEXT NOT NULL,
-    'comment' TEXT NOT NULL
+    issue TEXT NOT NULL,
+    description TEXT NOT NULL,
+    datum TEXT NOT NULL,
+    author TEXT,
+    details TEXT
 );
+
+DROP TABLE if exists resolved_issues;
+CREATE TABLE resolved_issues (
+    id INTEGER PRIMARY KEY autoincrement,
+    issue TEXT NOT NULL,
+    datum TEXT
+);
+

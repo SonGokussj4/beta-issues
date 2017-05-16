@@ -2,66 +2,153 @@
 
 {% block body -%}
 
-<h3>Unresolved Issues</h3>
-<form method=post action="{{ url_for('tbl_del_row') }}">
-<table id="issues" class="table table-hover">
-  <thead>
-    <tr>
-      <th id="issue">Issue</th>
-      <th id="descr">Description</th>
-      {% if session.logged_in -%}
-      <th id="edit">Edit</th>
-      {% endif %}
-    </tr>
-  </thead>
-  <tbody>
-    {% for data in unresolved -%}
-      {% set issue = data[1] -%}
-      {% set description = data[2] -%}
-      <tr>
-        <td><spam style="font-family: monospace;">{{ issue }}</spam></td>
-        <td>{{ description }}</td>
-        {% if session.logged_in -%}
-          <td>
-            <a><button name="remove_issue" value="{{ issue }}" type="submit" class="btn btn-xs btn-danger" data-toggle="tooltip" data-placement="top" title="Remove issue: {{ issue }}">
-              <span class="glyphicon glyphicon-remove"></span>
-            </button></a>
-            <a><button name="edit_issue" value="{{ issue }}" type="submit" class="btn btn-xs btn-success" data-toggle="tooltip" data-placement="top" title="Modify field">
-              <span class="glyphicon glyphicon-edit"></span>
-            </button></a>
-           {#  <button type="button" data-id=" {{ data[0] }} " class="btn btn-default btn-xs editButton" data-toggle="modal" data-target="#issueStatus_editModal" data-row_data="{{ unresolved }}"><span class="glyphicon glyphicon-edit"></span></button> #}
-            <span href="#issueStatus_editModal" class="open-issueStatus_editModal" data-toggle="modal" data-id=" {{ data[0] }} " data-issue="{{ issue }}">
-              <a data-toggle="tooltip"  title="Add this item" class="btn btn-xs btn-primary">
-                <span class="glyphicon glyphicon-edit" ></span>
-              </a>
-            </span>
-          </td>
-        {% endif -%}
-      </tr>
-    {% endfor -%}
-  </tbody>
-</table>
-</form>
+{% if session.logged_in -%}
+  <div class="container">
+    <button type="button" class="btn btn-success center-block" data-toggle="collapse" data-target="#inc_add_issue" aria-expanded="false" aria-controls="inc_add_issue">
+      <span class="glyphicon glyphicon-plus-sign"></span>
+      Add New Issue
+    </button>
 
-<h3>Resolved Issues</h3>
-<table class="table table-hover">
-  <thead>
-    <tr>
-      <th>Issue</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for data in resolved -%}
-      {% set issue = data[1] -%}
-      {% set description = data[2] -%}
-      <tr class="success">
-        <td><spam style="font-family: monospace;">{{ issue }}</spam></td>
-        <td>{{ description }}</td>
-      </tr>
-    {% endfor -%}
-  </tbody>
-</table>
+    <div class="collapse" id="inc_add_issue" style="padding-top: 10px;">
+      <div class="panel panel-primary ">
+        <div class="panel-heading">
+          Details of new Evektor issue
+          <button class="btn btn-primary btn-xs pull-right" data-target="#inc_add_issue" data-toggle="collapse">
+            <span class="glyphicon glyphicon-remove"></span>
+          </button>
+        </div>
+        <div class="panel-body">
+          <p>
+            <span class="label label-success" style="font-size: 1em;">Info</span>
+            Beta should have returned reported issue by some incident ID (<code>META-23468</code> or <code>#64553</code> and so on...)
+          </p>
+          <p>
+            <span class="label label-warning" style="font-size: 1em;">Warning</span>
+            It's <b>extremely important</b> to add the issue <b>as BETA wrote it</b>. For example <code>#64553</code> is full issue name. Not only <code>64553</code>.
+          </p>
+          {% include 'includes/inc_new_issue.html' -%}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endif -%}
+
+<div class="container">
+
+  <div id="issue-panel" class="panel panel-primary">
+    <div class="panel-heading">Unresolved Issues</div>
+    <div class="panel-body">
+      <form method="post" action="{{ url_for('issue_modify') }}">
+        {# <h3>Unresolved Issues</h3> #}
+        <table id="issues" class="table table-hover">
+          <thead>
+            <tr>
+              <th id="issue">Issue</th>
+              <th id="descr">Description</th>
+              <th id="date">Date</th>
+              <th id="author">Author</th>
+              {% if session.logged_in -%}
+                <th id="modify">Modify</th>
+              {% endif %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for data in unresolved -%}
+              {% set issue = data[1] -%}
+              {% set description = data[2] -%}
+              {% set datum = data[3] -%}
+              {% set author = data[4] -%}
+              {% set details = data[5] -%}
+              <tr>
+                <td><spam style="font-family: monospace;">{{ issue }}</spam></td>
+                <td>{{ description }}</td>
+                <td>{{ datum }}</td>
+                <td>{{ author }}</td>
+                {% if session.logged_in -%}
+                  <td>
+                    <button class="btn btn-danger btn-xs" data-toggle="tooltip" title="Remove issue: {{ issue }}" type="submit">
+                      <span class="glyphicon glyphicon-remove"></span>
+                    </button>
+
+                    <a><button name="remove_issue" value="{{ issue }}" type="submit" class="btn btn-xs btn-danger" data-toggle="tooltip" data-placement="top" title="Remove issue: {{ issue }}">
+                      <span class="glyphicon glyphicon-remove"></span>
+                    </button></a>
+                    <a><button name="edit_issue" value="{{ issue }}" type="submit" class="btn btn-xs btn-success" data-toggle="tooltip" data-placement="top" title="Modify field">
+                      <span class="glyphicon glyphicon-edit"></span>
+                    </button></a>
+                    <span href="#issueStatus_editModal" class="open-issueStatus_editModal" data-toggle="modal" data-id=" {{ data[0] }} " data-issue="{{ issue }}">
+                      <a data-toggle="tooltip"  title="Add this item" class="btn btn-xs btn-primary">
+                        <span class="glyphicon glyphicon-edit" ></span>
+                      </a>
+                    </span>
+                  </td>
+                {% endif -%}
+              </tr>
+            {% endfor -%}
+          </tbody>
+        </table>
+      </form>
+    </div>
+  </div>
+
+  <div id="issue-panel" class="panel panel-success">
+    <div class="panel-heading">Resolved Issues</div>
+    <div class="panel-body">
+      <form method="post" action="{{ url_for('issue_modify') }}">
+        {# <h3>Unresolved Issues</h3> #}
+        <table id="issues" class="table table-hover">
+          <thead>
+            <tr>
+              <th id="issue">Issue</th>
+              <th id="descr">Description</th>
+              <th id="date">Date</th>
+              <th id="author">Author</th>
+              {% if session.logged_in -%}
+                <th id="modify">Modify</th>
+              {% endif %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for data in resolved -%}
+              {% set issue = data[1] -%}
+              {% set description = data[2] -%}
+              {% set datum = data[3] -%}
+              {% set author = data[4] -%}
+              {% set details = data[5] -%}
+              <tr>
+                <td><spam style="font-family: monospace;">{{ issue }}</spam></td>
+                <td>{{ description }}</td>
+                <td>{{ datum }}</td>
+                <td>{{ author }}</td>
+                {% if session.logged_in -%}
+                  <td>
+                    <button class="btn btn-danger btn-xs" data-toggle="tooltip" title="Remove issue: {{ issue }}" type="submit">
+                      <span class="glyphicon glyphicon-remove"></span>
+                    </button>
+
+                    <a><button name="remove_issue" value="{{ issue }}" type="submit" class="btn btn-xs btn-danger" data-toggle="tooltip" data-placement="top" title="Remove issue: {{ issue }}">
+                      <span class="glyphicon glyphicon-remove"></span>
+                    </button></a>
+                    <a><button name="edit_issue" value="{{ issue }}" type="submit" class="btn btn-xs btn-success" data-toggle="tooltip" data-placement="top" title="Modify field">
+                      <span class="glyphicon glyphicon-edit"></span>
+                    </button></a>
+                    <span href="#issueStatus_editModal" class="open-issueStatus_editModal" data-toggle="modal" data-id=" {{ data[0] }} " data-issue="{{ issue }}">
+                      <a data-toggle="tooltip"  title="Add this item" class="btn btn-xs btn-primary">
+                        <span class="glyphicon glyphicon-edit" ></span>
+                      </a>
+                    </span>
+                  </td>
+                {% endif -%}
+              </tr>
+            {% endfor -%}
+          </tbody>
+        </table>
+      </form>
+    </div>
+  </div>
+
+
+</div>  <!-- container -->
 
 
 <!-- Modal -->
