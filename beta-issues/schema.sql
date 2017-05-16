@@ -12,9 +12,10 @@ CREATE TABLE issues (
     id INTEGER PRIMARY KEY autoincrement,
     issue TEXT NOT NULL,
     description TEXT NOT NULL,
-    datum TEXT NOT NULL,
+    date_issued TEXT NOT NULL,
     author TEXT,
-    details TEXT
+    details TEXT,
+    date_resolved TEXT
 );
 
 DROP TABLE if exists resolved_issues;
