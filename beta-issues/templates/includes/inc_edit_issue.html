@@ -1,7 +1,5 @@
 {% block body %}
 
-<form action="{{ url_for('add_issue') }}" method="post" class="form-horizontal" style="margin-top: 5%;">
-
   <div class="form-group">
     <label for="inpIssue" class="col-sm-2 control-label">Issue *</label>
     <div class="col-sm-2">
@@ -37,12 +35,10 @@
     </div>
   </div>
 
+  {# Helper hidden input containing original issue name #}
   <div class="form-group">
-    <div class="col-sm-offset-2 col-sm-10">
-      <button type="submit" class="btn btn-success"><span class="glyphicon glyphicon-plus"></span> Add Issue to the Database</button>
-    </div>
+    <input name="orig_issue" type="hidden" class="form-control" id="inpOrigIssue">
   </div>
 
-</form>
 
 {% endblock %}

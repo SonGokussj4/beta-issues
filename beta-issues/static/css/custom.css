@@ -22,3 +22,9 @@ table#issues #descr {width: 55%;}
 table#issues #date {width: 10%;}
 table#issues #author {width: 10%;}
 table#issues #modify {width: 15%;}
+
+@media screen and (min-width: 768px) {
+    .custom-class {
+        width: 60%; /* either % (e.g. 60%) or px (400px) */
+    }
+}

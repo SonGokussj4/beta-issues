@@ -16,15 +16,14 @@ $(document).ready(function(){
 
 
 // Multiple addition of file in upload_release_changes.html
-
 $(document).on('ready', function() {
-    $("#input-1a").fileinput({
-    uploadUrl: "not/working/for/now", // server upload action
-    uploadAsync: true,
-    minFileCount: 1,
-    showUpload: false,
-    showRemove: true,
-    dropZoneEnabled: true,
-    allowedFileExtensions: ['pdf'],
-});
+    $("#input-1a").fileinput ({
+        uploadUrl: "not/working/for/now", // server upload action
+        uploadAsync: true,
+        minFileCount: 1,
+        showUpload: false,
+        showRemove: true,
+        dropZoneEnabled: true,
+        allowedFileExtensions: ['pdf'],
+    });
 })

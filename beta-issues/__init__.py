@@ -1,7 +1,5 @@
 import os
 import sys
-sys.path.append(os.path.abspath(os.path.join(os.path.curdir, 'static', 'scripts')))
-from beta_pdf_miner import get_issues_list
 from flask import Flask, render_template, flash, request, url_for, redirect, session, g, abort, Markup
 from werkzeug.utils import secure_filename
 from functools import wraps
@@ -9,6 +7,10 @@ from wtforms import Form, TextField, PasswordField, BooleanField, validators
 from passlib.hash import sha256_crypt
 import gc
 import sqlite3
+
+# User scripts
+sys.path.append(os.path.abspath(os.path.join(os.path.curdir, 'static', 'scripts')))
+from beta_pdf_miner import get_issues_list
 
 app = Flask(__name__)
 app.config.from_object(__name__)  # load config from this file, flaskr.py
@@ -21,6 +23,7 @@ app.config.update(dict(
     PASSWORD='default',
     UPLOAD_FOLDER=os.path.join(app.root_path, 'static', 'upload'),
 ))
+
 
 def login_required(f):
     @wraps(f)
@@ -107,12 +110,6 @@ def issue_status():
     return render_template('issue_status.html', resolved=resolved, unresolved=unresolved)
 
 
-@app.route('/issue_add_new/')
-@login_required
-def issue_add_new():
-    return render_template('issue_add_new.html')
-
-
 @app.route('/add_issue/', methods=['GET', 'POST'])
 def add_issue():
     if not session.get('logged_in'):
@@ -124,9 +121,8 @@ def add_issue():
 
     if len(existing) > 0:
         flash("This issue already exists...")
-        return redirect(url_for('issue_add_new'))
+        return redirect(url_for('issue_status'))
 
-    print(request.form.__dict__)
     cur.execute("INSERT INTO issues (issue, description, datum, author, details) VALUES (?, ?, ?, ?, ?)", (
         request.form.get('issue'),
         request.form.get('description'),
@@ -135,8 +131,45 @@ def add_issue():
         request.form.get('details')
     ))
     db.commit()
+    gc.collect()
 
     flash('New issue was successfully added into database.', 'success')
+    return redirect(url_for('issue_status'))
+
+
+@app.route('/edit_issue/', methods=['GET', 'POST'])
+def edit_issue():
+    if not session.get('logged_in'):
+        abort(401)
+
+    if request.method == 'POST':
+        if request.form.get('submit') == 'details':
+            print("JOJO")
+            sys.exit()
+
+    cur, db = get_db(cursor=True)
+    cur.execute("SELECT * FROM issues WHERE issue = ?", [request.form.get('orig_issue')])
+    res = cur.fetchall()
+
+    if len(res) == 0:
+        flash("This issue was not found in database... Weird...")
+        return redirect(url_for('issue_status'))
+
+    print(dict(request.form))
+
+    cur.execute("UPDATE issues SET issue = ?, description = ?, datum = ?, author = ?, details = ? WHERE issue = ?", (
+        request.form.get('issue'),
+        request.form.get('description'),
+        request.form.get('datum'),
+        request.form.get('author'),
+        request.form.get('details'),
+        request.form.get('orig_issue')
+    ))
+    db.commit()
+    gc.collect()
+
+    flash("Issue: {} was modified successfully.".format(request.form.get('issue')), 'success')
+
     return redirect(url_for('issue_status'))
 
 
@@ -207,8 +240,7 @@ def login():
         db = get_db()
         cur = db.cursor()
         if request.method == 'POST':
-            cur.execute("SELECT * FROM users WHERE username = ?",
-                (request.form.get('username'), ))
+            cur.execute("SELECT * FROM users WHERE username = ?", [request.form.get('username')])
 
             data = cur.fetchone()
             username, password = data[1], data[2]
@@ -255,7 +287,7 @@ def register_page():
                 return render_template('register.html', form=form)
             else:
                 db.execute("INSERT INTO users (username, password, email) VALUES (?, ?, ?)",
-                    (username, password, email))
+                           (username, password, email))
                 db.commit()
                 flash("Thanks for registering.", 'success')
                 gc.collect()  # garbage collection, clear unused cache memory, important
@@ -287,9 +319,11 @@ def issue_modify():
     cur, db = get_db(cursor=True)
     cur.execute("SELECT * FROM issues WHERE issue = ? LIMIT 1", [issue])
     res = dict(cur.fetchone())
-    flash("Issue DELETED: {}".format(res.get('issue')), 'danger')
+    flash("Issue: {} deleted.".format(res.get('issue')), 'danger')
+
     cur.execute("DELETE FROM issues WHERE issue = ?", [res.get('issue')])
     db.commit()
+    gc.collect()
     return redirect(url_for('issue_status'))
 
 
