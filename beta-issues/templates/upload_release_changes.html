@@ -27,6 +27,14 @@
   <div id="kv-error-2" style="margin-top:10px;"></div>
   <p class="text-center" style="font-size: 1.5em;">Current number of uploaded issues:</p>
   <p class="text-center" style="font-size: 1.5em;"><spam class="bg-success" style="padding: 5px;">{{ resolved_issues_in_db }}</spam></p>
+  <div class="text-center" style="padding-top: 30px;">
+    {% for data in nums -%}
+      {% if data.get('version') != '' %}
+        <button class="btn btn-static btn-sm" style="margin-top: 3px; width: 160px !important ">{{ data.get('version') }} <spam class="badge">{{ data.get('COUNT(1)') }}</spam></button>
+        {# <br> #}
+      {% endif %}
+    {% endfor %}
+  </div>
 </div>
 
 {% endblock %}

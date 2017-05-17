@@ -180,7 +180,12 @@ def upload_release_changes():
     cur, db = get_db(cursor=True)
     data = cur.execute("SELECT * FROM resolved_issues")
     issues = len(data.fetchall())
-    return render_template('upload_release_changes.html', resolved_issues_in_db=issues)
+
+    data = cur.execute("SELECT version, COUNT(1) FROM resolved_issues GROUP BY version ORDER BY version;")
+    nums = [dict(num) for num in data.fetchall()]
+    print(nums)
+
+    return render_template('upload_release_changes.html', resolved_issues_in_db=issues, nums=nums)
 
 
 @app.route('/upload_release_changes/', methods=['GET', 'POST'])
