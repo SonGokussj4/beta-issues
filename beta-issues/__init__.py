@@ -102,7 +102,7 @@ def issue_status():
     resolved, unresolved = [], []
 
     for row in issues:
-        idx, issue, description, datum, author, details = row
+        idx, issue, description, date_issued, author, details, date_resolved = row
         found = cur.execute("SELECT * FROM resolved_issues WHERE issue = ?", [issue]).fetchall()
         if len(found) > 0:
             resolved.append(row)
@@ -124,10 +124,10 @@ def add_issue():
         flash("This issue already exists...")
         return redirect(url_for('issue_status'))
 
-    cur.execute("INSERT INTO issues (issue, description, datum, author, details) VALUES (?, ?, ?, ?, ?)", (
+    cur.execute("INSERT INTO issues (issue, description, date_issued, author, details) VALUES (?, ?, ?, ?, ?)", (
         request.form.get('issue'),
         request.form.get('description'),
-        request.form.get('datum'),
+        request.form.get('date_issued'),
         request.form.get('author'),
         request.form.get('details')
     ))
@@ -158,10 +158,10 @@ def edit_issue():
 
     print(dict(request.form))
 
-    cur.execute("UPDATE issues SET issue = ?, description = ?, datum = ?, author = ?, details = ? WHERE issue = ?", (
+    cur.execute("UPDATE issues SET issue = ?, description = ?, date_issued = ?, author = ?, details = ? WHERE issue = ?", (
         request.form.get('issue'),
         request.form.get('description'),
-        request.form.get('datum'),
+        request.form.get('date_issued'),
         request.form.get('author'),
         request.form.get('details'),
         request.form.get('orig_issue')

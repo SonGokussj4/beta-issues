@@ -45,7 +45,7 @@
             <tr>
               <th id="issue">Issue</th>
               <th id="descr">Description</th>
-              <th id="date">Date</th>
+              <th id="date">Date Issued</th>
               <th id="author">Author</th>
               {% if session.logged_in -%}
                 <th id="modify">Modify</th>
@@ -57,18 +57,24 @@
               {% set id = data[0] -%}
               {% set issue = data[1] -%}
               {% set description = data[2] -%}
-              {% set datum = data[3] -%}
+              {% set datum_issued = data[3] -%}
               {% set author = data[4] -%}
               {% set details = data[5] -%}
               <tr>
                 <td><spam style="font-family: monospace;">{{ issue }}</spam></td>
                 <td>{{ description }}</td>
-                <td>{{ datum }}</td>
+                <td>{{ datum_issued }}</td>
                 <td>{{ author }}</td>
                 {% if session.logged_in -%}
                   <td>
                     <span href="#issueStatus_showDetailsModal" class="open-issueStatus_showDetailsModal" data-toggle="modal" data-details="{{ details }}"><a class="btn btn-xs btn-primary"><span class="glyphicon glyphicon-chevron-down" ></span> Details</a></span>
-                    <span href="#issueStatus_editModal" class="open-issueStatus_editModal" data-toggle="modal" data-id=" {{ id }} " data-issue="{{ issue }}" data-description="{{ description }}" data-datum="{{ datum }}" data-author="{{ author }}" data-details="{{ details }}">
+                    <span href="#issueStatus_editModal" class="open-issueStatus_editModal" data-toggle="modal"
+                          data-id="{{ id }}"
+                          data-issue="{{ issue }}"
+                          data-description="{{ description }}"
+                          data-date_issued="{{ datum_issued }}"
+                          data-author="{{ author }}"
+                          data-details="{{ details }}">
                       <a data-toggle="tooltip"  title="Edit issue: {{ issue }}" class="btn btn-xs btn-primary">
                         <span class="glyphicon glyphicon-edit" ></span>
                     <a>
@@ -110,18 +116,24 @@
               {% set id = data[0] -%}
               {% set issue = data[1] -%}
               {% set description = data[2] -%}
-              {% set datum = data[3] -%}
+              {% set date_issued = data[3] -%}
               {% set author = data[4] -%}
               {% set details = data[5] -%}
               <tr>
                 <td><spam style="font-family: monospace;">{{ issue }}</spam></td>
                 <td>{{ description }}</td>
-                <td>{{ datum }}</td>
+                <td>{{ date_issued }}</td>
                 <td>{{ author }}</td>
                 {% if session.logged_in -%}
                   <td>
                     <span href="#issueStatus_showDetailsModal" class="open-issueStatus_showDetailsModal" data-toggle="modal" data-details="{{ details }}"><a class="btn btn-xs btn-primary"><span class="glyphicon glyphicon-chevron-down" ></span> Details</a></span>
-                    <span href="#issueStatus_editModal" class="open-issueStatus_editModal" data-toggle="modal" data-id=" {{ id }} " data-issue="{{ issue }}" data-description="{{ description }}" data-datum="{{ datum }}" data-author="{{ author }}" data-details="{{ details }}">
+                    <span href="#issueStatus_editModal" class="open-issueStatus_editModal" data-toggle="modal"
+                          data-id="{{ id }}"
+                          data-issue="{{ issue }}"
+                          data-description="{{ description }}"
+                          data-date_issued="{{ date_issued }}"
+                          data-author="{{ author }}"
+                          data-details="{{ details }}">
                       <a data-toggle="tooltip"  title="Edit issue: {{ issue }}" class="btn btn-xs btn-primary">
                         <span class="glyphicon glyphicon-edit" ></span>
                       </a>
@@ -185,24 +197,46 @@
   </div>
 </div>
 
-<!-- JavaScript for the Modal SHOW_DETAILS -->
-<script type="text/javascript">
-  $(document).on("click", ".open-issueStatus_showDetailsModal", function () {
-       $(".modal-body #detaily").text( $(this).attr('data-details') );
-  });
-</script>
 
 <!-- JavaScript for the Modal EDIT_ISSUE -->
-<script type="text/javascript">
-  $(document).on("click", ".open-issueStatus_editModal", function () {
+<script>
+
+  tinymce.init({
+      selector: "textarea",
+      width: '90%',
+      height: 270,
+      plugins: 'advlist autolink link image lists charmap print preview',
+      // statusbar:  false,
+      // menubar:    false,
+      // toolbar:    "link anchor | alignleft aligncenter alignright alignjustify",
+      rel_list:   [ { title: 'Lightbox', value: 'lightbox' } ]
+  });
+
+  // Prevent Bootstrap dialog from blocking focusin
+  $(document).on('focusin', function(e) {
+    if ($(e.target).closest(".mce-window").length) {
+      e.stopImmediatePropagation();
+    }
+  });
+
+  // Modal SHOW_DETAILS
+  $('.open-issueStatus_showDetailsModal').click(function () {
+       $(".modal-body #detaily").html( $(this).attr('data-details') );
+  });
+
+  //
+  $('.open-issueStatus_editModal').click(function () {
        // var issue = $(this).data('issue');
        // var issue = $(this).attr('data-issue');
-       $(".modal-body #inpIssue").val( $(this).attr('data-issue') );
-       $(".modal-body #inpAuthor").val( $(this).attr('data-author') );
-       $(".modal-body #inpDate").val( $(this).attr('data-datum') );
-       $(".modal-body #inpDescription").val( $(this).attr('data-description') );
-       $(".modal-body #inpDetails").val( $(this).attr('data-details') );
-       $(".modal-body #inpOrigIssue").val( $(this).attr('data-issue') );
+       $(".modal-body #inpIssue").val( $(this).attr("data-issue") );
+       $(".modal-body #inpAuthor").val( $(this).attr("data-author") );
+       $(".modal-body #inpDate").val( $(this).attr("data-date_issued") );
+       $(".modal-body #inpDescription").val( $(this).attr("data-description") );
+       // $(".modal-body #inpDetails").html( $(this).attr("data-details") );
+       // tinyMCE.activeEditor.setContent( $(this).attr("data-details") );
+       tinyMCE.get('inpDetails').setContent( $(this).attr("data-details") );
+       $(".modal-body #inpOrigIssue").val( $(this).attr("data-issue") );
   });
+
 </script>
 {% endblock %}
