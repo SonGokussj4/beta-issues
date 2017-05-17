@@ -102,8 +102,9 @@ def issue_status():
     resolved, unresolved = [], []
 
     for row in issues:
-        idx, issue, description, date_issued, author, details, date_resolved = row
+        issue = row[1]
         found = cur.execute("SELECT * FROM resolved_issues WHERE issue = ?", [issue]).fetchall()
+        print("DEBUG: ISSUE: {}, found: {}".format(issue, found))
         if len(found) > 0:
             resolved.append(row)
         else:
@@ -117,20 +118,36 @@ def add_issue():
         abort(401)
 
     cur, db = get_db(cursor=True)
-    cur.execute("SELECT * FROM issues WHERE issue = ?", [request.form.get('issue')])
-    existing = cur.fetchall()
+    issue = request.form.get('issue')
+    version = ""
+    date_resolved = ""
 
+    existing = cur.execute("SELECT * FROM issues WHERE issue = ?", [issue]).fetchall()
     if len(existing) > 0:
-        flash("This issue already exists...")
+        flash("This issue already exists...", 'danger')
         return redirect(url_for('issue_status'))
 
-    cur.execute("INSERT INTO issues (issue, description, date_issued, author, details) VALUES (?, ?, ?, ?, ?)", (
-        request.form.get('issue'),
-        request.form.get('description'),
-        request.form.get('date_issued'),
-        request.form.get('author'),
-        request.form.get('details')
-    ))
+    # Check if issue is already resolved:
+    # resolved = cur.execute("SELECT EXISTS(SELECT 1 FROM resolved_issues WHERE issue = ? LIMIT 1)", [issue]).fetchone()[0]
+    resolved = cur.execute("SELECT * from resolved_issues WHERE issue = ?", [issue]).fetchall()
+    if len(resolved) > 0:
+        sqlRow = dict(resolved[0])
+        version = sqlRow.get('version')
+        date_resolved = sqlRow.get('date_resolved')
+        flash("This issue is already resolved! [{}] in {}".format(version, date_resolved), 'success')
+
+    cur.execute(
+        "INSERT INTO issues "
+        "(issue, description, date_issued, author, details, date_resolved, version) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?)", (
+            issue,
+            request.form.get('description'),
+            request.form.get('date_issued'),
+            request.form.get('author'),
+            request.form.get('details'),
+            date_resolved,
+            version
+        ))
     db.commit()
     gc.collect()
 
@@ -181,9 +198,8 @@ def upload_release_changes():
     data = cur.execute("SELECT * FROM resolved_issues")
     issues = len(data.fetchall())
 
-    data = cur.execute("SELECT version, COUNT(1) FROM resolved_issues GROUP BY version ORDER BY version;")
+    data = cur.execute("SELECT version, COUNT(1) FROM resolved_issues GROUP BY version ORDER BY version DESC")
     nums = [dict(num) for num in data.fetchall()]
-    print(nums)
 
     return render_template('upload_release_changes.html', resolved_issues_in_db=issues, nums=nums)
 
@@ -216,21 +232,31 @@ def upload_changes():
     count = 0
     # Iterate over found issues in PDF
     for issue_tuple in issues:
-        issue, ver = issue_tuple
+        issue, version = issue_tuple
         # Check if issue is not already in database, if not (found == 0), continue
         found = cur.execute("SELECT EXISTS(SELECT 1 FROM resolved_issues WHERE issue = ? LIMIT 1)", [issue]).fetchone()[0]
         if found == 0:
             # Check if this issue is not in your database of issues, if yes, notify user about it
             unresolved = cur.execute("SELECT * FROM issues where issue = ?", [issue]).fetchall()
             if len(unresolved) > 0:
-                _, issue_num, issue_descr = unresolved[0]  # uid, issue, description
+                issue_num, description = unresolved[0][1], unresolved[0][2]  # uid, issue, description
                 msg = Markup("<p><strong>Our issue resolved!</strong></p>"
                              "<p>Issue: {}</p>"
-                             "<p>Description: {}</p>".format(issue_num, issue_descr))
+                             "<p>Description: {}</p>".format(issue_num, description))
                 flash(msg, 'success')
+                # Update the issue, insert date in column date_resolved
+                print("DEBUG:", version, issue_num)
+                cur.execute("UPDATE issues SET date_resolved = ?, version = ? WHERE issue = ?", (
+                    datetime.datetime.today().strftime('%Y-%m-%d'),
+                    version,
+                    issue_num
+                ))
             # Update the database of resolved issues (from PDF)
-            cur.execute("INSERT OR IGNORE INTO resolved_issues (issue, version, datum) VALUES (?, ?, ?)",
-                [issue, ver, datetime.datetime.today().strftime('%Y-%m-%d')])
+            cur.execute("INSERT OR IGNORE INTO resolved_issues (issue, version, date_resolved) VALUES (?, ?, ?)", [
+                issue,
+                version,
+                datetime.datetime.today().strftime('%Y-%m-%d')
+            ])
             count += 1  # count the number of newly added (not already there) issues into resolved_issues db
     db.commit()
     gc.collect()

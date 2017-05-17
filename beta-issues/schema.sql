@@ -15,7 +15,8 @@ CREATE TABLE issues (
     date_issued TEXT NOT NULL,
     author TEXT,
     details TEXT,
-    date_resolved TEXT
+    date_resolved TEXT,
+    version TEXT
 );
 
 DROP TABLE if exists resolved_issues;
@@ -23,6 +24,6 @@ CREATE TABLE resolved_issues (
     id INTEGER PRIMARY KEY autoincrement,
     issue TEXT NOT NULL,
     version TEXT,
-    datum TEXT
+    date_resolved TEXT
 );
 

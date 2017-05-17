@@ -17,14 +17,18 @@ h3 {
 }
 
 div#issue-panel {margin-top: 50px;}
-table#issues #issue {width: 10%;}
-table#issues #descr {width: 55%;}
-table#issues #date {width: 10%;}
+table#issues #issue {width: 11%;}
+table#issues #details {width: 9%;}
+table#issues #date_issued {width: 9%;}
+table#issues #date_resolved {width: 9%;}
+table#issues #version {width: 10%;}
 table#issues #author {width: 10%;}
-table#issues #modify {width: 15%;}
+table#issues #modify {width: 8%;}
 
+
+/* Custom modal width*/
 @media screen and (min-width: 768px) {
-    .custom-class {
+    .custom-modal-width {
         width: 60%; /* either % (e.g. 60%) or px (400px) */
     }
 }

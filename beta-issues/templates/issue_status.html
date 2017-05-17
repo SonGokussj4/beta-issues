@@ -39,13 +39,13 @@
     <div class="panel-heading">Unresolved Issues <spam class="badge">{{ unresolved|length }}</spam></div>
     <div class="panel-body">
       <form method="post" action="{{ url_for('issue_modify') }}">
-        {# <h3>Unresolved Issues</h3> #}
         <table id="issues" class="table table-hover">
           <thead>
             <tr>
               <th id="issue">Issue</th>
-              <th id="descr">Description</th>
-              <th id="date">Date Issued</th>
+              <th id="description">Description</th>
+              <th id="details">Details</th>
+              <th id="date_issued">Issued</th>
               <th id="author">Author</th>
               {% if session.logged_in -%}
                 <th id="modify">Modify</th>
@@ -57,33 +57,40 @@
               {% set id = data[0] -%}
               {% set issue = data[1] -%}
               {% set description = data[2] -%}
-              {% set datum_issued = data[3] -%}
+              {% set date_issued = data[3] -%}
               {% set author = data[4] -%}
               {% set details = data[5] -%}
               <tr>
                 <td><spam style="font-family: monospace;">{{ issue }}</spam></td>
                 <td>{{ description }}</td>
-                <td>{{ datum_issued }}</td>
+                <td>
+                  {% if not details|length == 0 %}
+                    <span href="#issueStatus_showDetailsModal" class="open-issueStatus_showDetailsModal" data-toggle="modal" data-details="{{ details }}">
+                      <a class="btn btn-xs btn-primary">
+                        <span class="glyphicon glyphicon-paperclip" ></span>
+                        &nbsp;Details
+                      </a>
+                    </span>
+                  {% endif %}
+                </td>
+                <td>{{ date_issued }}</td>
                 <td>{{ author }}</td>
                 {% if session.logged_in -%}
                   <td>
-                    <span href="#issueStatus_showDetailsModal" class="open-issueStatus_showDetailsModal" data-toggle="modal" data-details="{{ details }}"><a class="btn btn-xs btn-primary"><span class="glyphicon glyphicon-chevron-down" ></span> Details</a></span>
                     <span href="#issueStatus_editModal" class="open-issueStatus_editModal" data-toggle="modal"
                           data-id="{{ id }}"
                           data-issue="{{ issue }}"
                           data-description="{{ description }}"
-                          data-date_issued="{{ datum_issued }}"
+                          data-date_issued="{{ date_issued }}"
                           data-author="{{ author }}"
                           data-details="{{ details }}">
                       <a data-toggle="tooltip"  title="Edit issue: {{ issue }}" class="btn btn-xs btn-primary">
                         <span class="glyphicon glyphicon-edit" ></span>
-                    <a>
-                      <button name="remove_issue" value="{{ issue }}" type="submit" class="btn btn-xs btn-danger" data-toggle="tooltip" data-placement="top" title="Remove issue: {{ issue }}">
-                        <span class="glyphicon glyphicon-remove"></span>
-                      </button>
-                    </a>
                       </a>
                     </span>
+                    <button name="remove_issue" value="{{ issue }}" type="submit" class="btn btn-xs btn-danger" data-toggle=        "tooltip" data-placement="top" title="Remove issue: {{ issue }}">
+                      <span class="glyphicon glyphicon-remove"></span>
+                    </button>
                   </td>
                 {% endif -%}
               </tr>
@@ -98,14 +105,15 @@
     <div class="panel-heading">Resolved Issues <spam class="badge">{{ resolved|length }}</spam></div>
     <div class="panel-body">
       <form method="post" action="{{ url_for('issue_modify') }}">
-        {# <h3>Unresolved Issues</h3> #}
         <table id="issues" class="table table-hover">
           <thead>
             <tr>
               <th id="issue">Issue</th>
-              <th id="descr">Description</th>
-              <th id="date">Date</th>
-              <th id="author">Author</th>
+              <th id="description">Description</th>
+              <th id="details">Details</th>
+              <th id="date_issued">Issued</th>
+              <th id="date_resolved">Resolved</th>
+              <th id="version">Version</th>
               {% if session.logged_in -%}
                 <th id="modify">Modify</th>
               {% endif %}
@@ -119,14 +127,26 @@
               {% set date_issued = data[3] -%}
               {% set author = data[4] -%}
               {% set details = data[5] -%}
+              {% set date_resolved = data[6] -%}
+              {% set version = data[7] -%}
               <tr>
                 <td><spam style="font-family: monospace;">{{ issue }}</spam></td>
                 <td>{{ description }}</td>
+                <td>
+                  {% if not details|length == 0 %}
+                    <span href="#issueStatus_showDetailsModal" class="open-issueStatus_showDetailsModal" data-toggle="modal" data-details="{{ details }}" data-issue="{{ issue }}">
+                      <a class="btn btn-xs btn-primary">
+                        <span class="glyphicon glyphicon-paperclip" ></span>
+                        &nbsp;Details
+                      </a>
+                    </span>
+                  {% endif %}
+                </td>
                 <td>{{ date_issued }}</td>
-                <td>{{ author }}</td>
+                <td>{{ date_resolved }}</td>
+                <td>{{ version }}</td>
                 {% if session.logged_in -%}
                   <td>
-                    <span href="#issueStatus_showDetailsModal" class="open-issueStatus_showDetailsModal" data-toggle="modal" data-details="{{ details }}"><a class="btn btn-xs btn-primary"><span class="glyphicon glyphicon-chevron-down" ></span> Details</a></span>
                     <span href="#issueStatus_editModal" class="open-issueStatus_editModal" data-toggle="modal"
                           data-id="{{ id }}"
                           data-issue="{{ issue }}"
@@ -139,7 +159,8 @@
                       </a>
                     </span>
                     <a>
-                      <button name="remove_issue" value="{{ issue }}" type="submit" class="btn btn-xs btn-danger" data-toggle="tooltip" data-placement="top" title="Remove issue: {{ issue }}">
+                      <button name="remove_issue" value="{{ issue }}" type="submit" class="btn btn-xs btn-danger"
+                              data-toggle="tooltip" data-placement="top" title="Remove issue: {{ issue }}">
                         <span class="glyphicon glyphicon-remove"></span>
                       </button>
                     </a>
@@ -158,11 +179,13 @@
 
 <!-- Modal SHOW_DETAILS-->
 <div class="modal fade" id="issueStatus_showDetailsModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-  <div class="modal-dialog custom-class" role="document">
+  <div class="modal-dialog custom-modal-width" role="document">
     <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title" id="myModalLabel">Details</h4>
+      <div class="modal-header bg-primary">
+        <button class="btn btn-primary btn-xs pull-right" data-dismiss="modal" aria-label="Close">
+          <span class="glyphicon glyphicon-remove"></span>
+        </button>
+        <h4 class="modal-title" id="modalDetailsTitle">Details for Issue: ISSUE</h4>
       </div>
         <div class="modal-body">
           <div id="detaily"></div>
@@ -178,11 +201,13 @@
 
 <!-- Modal EDIT_ISSUE-->
 <div class="modal fade" id="issueStatus_editModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-  <div class="modal-dialog custom-class" role="document">
+  <div class="modal-dialog custom-modal-width" role="document">
     <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title" id="myModalLabel">Edit Issue</h4>
+      <div class="modal-header bg-primary">
+        <button class="btn btn-primary btn-xs pull-right" data-dismiss="modal" aria-label="Close">
+          <span class="glyphicon glyphicon-remove"></span>
+        </button>
+        <h4 class="modal-title" id="modalEditIssueTitle">Edit Issue: ISSUE</h4>
       </div>
       <form action="{{ url_for('edit_issue') }}" method="post" class="form-horizontal" style="margin-top: 5%;">
         <div class="modal-body">
@@ -205,11 +230,10 @@
       selector: "textarea",
       width: '90%',
       height: 270,
-      plugins: 'advlist autolink link image lists charmap print preview',
-      // statusbar:  false,
-      // menubar:    false,
-      // toolbar:    "link anchor | alignleft aligncenter alignright alignjustify",
-      rel_list:   [ { title: 'Lightbox', value: 'lightbox' } ]
+      menubar: false,
+      // menubar: 'undo redo | styleselect | bold italic | link image preview'
+      plugins: 'advlist autolink link image lists charmap preview',
+      rel_list: [ { title: 'Lightbox', value: 'lightbox' } ]
   });
 
   // Prevent Bootstrap dialog from blocking focusin
@@ -222,20 +246,20 @@
   // Modal SHOW_DETAILS
   $('.open-issueStatus_showDetailsModal').click(function () {
        $(".modal-body #detaily").html( $(this).attr('data-details') );
+       $(".modal-header #modalDetailsTitle").html( "Details for Issue: " + $(this).attr('data-issue') );
+
   });
 
-  //
+  // Fill up Modal EDIT_ISSUE
   $('.open-issueStatus_editModal').click(function () {
        // var issue = $(this).data('issue');
-       // var issue = $(this).attr('data-issue');
        $(".modal-body #inpIssue").val( $(this).attr("data-issue") );
        $(".modal-body #inpAuthor").val( $(this).attr("data-author") );
        $(".modal-body #inpDate").val( $(this).attr("data-date_issued") );
        $(".modal-body #inpDescription").val( $(this).attr("data-description") );
-       // $(".modal-body #inpDetails").html( $(this).attr("data-details") );
-       // tinyMCE.activeEditor.setContent( $(this).attr("data-details") );
        tinyMCE.get('inpDetails').setContent( $(this).attr("data-details") );
        $(".modal-body #inpOrigIssue").val( $(this).attr("data-issue") );
+       $(".modal-header #modalEditIssueTitle").text( "Edit Issue: " + $(this).attr("data-issue") );
   });
 
 </script>
