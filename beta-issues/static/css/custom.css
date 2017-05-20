@@ -16,6 +16,19 @@ h3 {
     padding-left: 10px;
 }
 
+ul li {
+    padding-top: 3px;
+}
+
+code {
+    border: 1px solid #DDDDD6;
+    font-family: monospace;
+    background-color: #F7F7F7;
+    border-radius: 3px;
+    color: black;
+    padding: 1px 8px;
+}
+
 div#issue-panel {margin-top: 50px;}
 table#issues #issue {width: 11%;}
 table#issues #details {width: 9%;}

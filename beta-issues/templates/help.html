@@ -1,7 +1,97 @@
 {% extends "header.html" %}
 
 {% block body %}
+<div class="containter">
+  <h2>Návod pro použití této webové aplikace</h2>
+  <hr>
+  <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
 
-<p>Sorry. Nothing here for now</p>
+    {# ISSUE STATUS help #}
+    <div class="panel panel-primary">
+      <div class="panel-heading" role="button" id="headingOne" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+        <h4 class="panel-title">
+            Adding New Evektor Issue
+        </h4>
+      </div>
+      <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+        <div class="panel-body">
+          <ol>
 
+            <h4><li>Obdržení čísla od Bety</li></h4>
+            <p>Poznamenat <code>incident číslo</code>, které Beta zašle jako vyjádření k problému. Číslo může nabývat různých tvarů:</p>
+            <ul>
+              <li><code>META-13326</code></li>
+              <li><code>ANSA-46635</code></li>
+              <li><code>#34565</code> (včetně <code>#</code>)</li>
+              <li><code>16332</code></li>
+              <li>Možná i další...</li>
+            </ul>
+
+            <h4><li>Vyplnit nový issue</li></h4>
+            <p>V záložce <a href="{{ url_for('issue_status') }}" class="btn btn-primary btn-xs">Issues Status</a> kliknout na <button class="btn btn-success btn-xs" style="cursor: default;">Add New Issue</button></p>
+            <p><b>Povinně</b> vyplnit:
+              <ul>
+                <li>Číslo incidentu</li>
+                <li>Kdo ho zadává do systému</li>
+                <li>Datum zadání (většinou nynější den)</li>
+                <li>Stručný popis (o co se jedná, kdo s tím měl problém, klidně delší)</li>
+              </ul>
+            <p><b>Nepovinně</b> je možné přidat detaily, např. emailovou komunikaci, lze vložit i obrázky, tabulky, ...</p>
+
+            <h4><li>Potvrdit</li></h4>
+            <p>Poté kliknout na <button class="btn btn-success btn-xs" style="cursor: default;">Add Issue to the Database</button></p>
+
+            <h4><li>Možné výsledky</li></h4>
+            <ul>
+              <li><b>Normální výstup:</b> issue se zapíše do tabulky <code class="bg-primary">Unresolved Issues</code></li>
+              <li><b>Uživatel zadal již existující issue:</b> issue se nezapíše, uživatel je o tomto obeznámen</li>
+              <li><b>Issue je již v databázi Betou vyřešených incidentů:</b> Tento fakt je uživateli oznámen a issue se přesune do tabulky <code class="bg-success">Resolved Issues</code></li>
+            </ul>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    {# UPLOAD RELEASE NOTES help #}
+    <div class="panel panel-primary">
+      <div class="panel-heading" role="button" id="headingTwo" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo">
+        <h4 class="panel-title">
+            Uploading Release Notes
+        </h4>
+      </div>
+      <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+        <div class="panel-body">
+          <ol>
+
+            <h4><li>Příprava PDF</li></h4>
+            <p>Najít Ansa/Meta PDF, které obsahuje buď nejnovější, nebo veškeré změny v dané řadě verzí.</p>
+            <ul>
+              <li><code>ansa_release_notes.pdf</code>, popř. <code>ANSA_v17.1.1_Release_Notes.pdf</code>, popř. <code>ansa_v17.0.x_release_notes.pdf</code></li>
+              <li><code>META_Release_Notes.pdf</code>, popř. <code>META_v17.1.1_Release_Notes.pdf</code>, popř. <code>META_Release_Notes_v16.x.x.pdf</code></li>
+            </ul>
+            <br>
+            <p class="alert alert-danger">PDF <b>MUSÍ</b> v názvu obsahovat slovo <b>ANSA</b> nebo <b>META.</b></p>
+
+            <h4><li>Načtení změn v nové verzi do databáze</li></h4>
+            <p>V záložce <a href="{{ url_for('upload_release_changes') }}" class="btn btn-primary btn-xs">Upload Release Notes</a> pak tato přichystaná PDF vybrat:
+            <ul>
+              <li>Pomocí <button class="btn btn-primary btn-xs" style="cursor: default;">Browse ...</button> (lze inkrementálně vybrat i více souborů z různých adresářů),</li>
+              <li>Nebo je myší jednoduše přetáhnout do pole <code>Drag & drop files here ...</code></li>
+              <li>Poté klinout na <button class="btn btn-static btn-xs">Upload</button></li>
+            </ul>
+
+            <h4><li>Chvíli počkat</li></h4>
+            <p>V závislosti na počtu zvolených souborů a jejich velikostí může načítání trvat pár sekund (2 malé pdf) až půl minuty (10 větších pdf)</p>
+
+            <h4><li>Sledovat oznámení</li></h4>
+            <p>Aplikace kontroluje, zda není mezi vyřešenými incidenty nějaký náš.</p>
+            <p>Pokud nějaký najde, oznámí to a automaticky přesune incident v záložce <a href="{{ url_for('issue_status') }}" class="btn btn-primary btn-xs">Issues Status</a> z tabulky <code class="bg-primary">Unresolved Issues</code> do <code class="bg-success">Resolved Issues</code></p>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+
+  </div>
+</div>
 {% endblock %}
