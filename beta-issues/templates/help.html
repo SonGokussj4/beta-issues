@@ -4,13 +4,25 @@
 <div class="containter">
   <h2>Návod pro použití této webové aplikace</h2>
   <hr>
+
+  <h4>Níže jsou uvedeny postupy pro:</h4>
+  <ul>
+    <li>přidání nového issue do databáze</li>
+    <li>update databáze Betou vyřešených incidentů</li>
+    <li>možnosti manipulace s již existujícími daty</li>
+  </ul>
+  {% if not session.logged_in %}
+    <p class="alert alert-danger">You need to be <b>Logged In</b> to be able to do anything mentioned bellow.</p>
+  {% endif %}
+
   <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
 
     {# ISSUE STATUS help #}
     <div class="panel panel-primary">
       <div class="panel-heading" role="button" id="headingOne" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
         <h4 class="panel-title">
-            Adding New Evektor Issue
+          <span class="glyphicon glyphicon-plus"></span>
+          Adding New Evektor Issue
         </h4>
       </div>
       <div id="collapseOne" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
@@ -36,7 +48,11 @@
                 <li>Datum zadání (většinou nynější den)</li>
                 <li>Stručný popis (o co se jedná, kdo s tím měl problém, klidně delší)</li>
               </ul>
-            <p><b>Nepovinně</b> je možné přidat detaily, např. emailovou komunikaci, lze vložit i obrázky, tabulky, ...</p>
+            <p><b>Nepovinné:</b></p>
+              <ul>
+                <li>Možnost přidat detaily (emailová komunikace, zdrojové kódy, tučný text, obrázky, tabulky)</li>
+                <li>Jestliže uživatel přidá detaily, objeví se v tabulce přehledu ikona <span class="btn btn-xs btn-primary"><span class="glyphicon glyphicon-paperclip" ></span>&nbsp;Details</span>, která v přehledném okně detaily zobrazí.</li>
+              </ul>
 
             <h4><li>Potvrdit</li></h4>
             <p>Poté kliknout na <button class="btn btn-success btn-xs" style="cursor: default;">Add Issue to the Database</button></p>
@@ -56,7 +72,8 @@
     <div class="panel panel-primary">
       <div class="panel-heading" role="button" id="headingTwo" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo">
         <h4 class="panel-title">
-            Uploading Release Notes
+          <span class="glyphicon glyphicon-upload"></span>
+          Uploading Release Notes
         </h4>
       </div>
       <div id="collapseTwo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
@@ -91,6 +108,36 @@
       </div>
     </div>
 
+    {# MODIFYING help #}
+    <div class="panel panel-primary">
+      <div class="panel-heading" role="button" id="headingThree" data-toggle="collapse" data-parent="#accordion" href="#collapseThree" aria-expanded="true" aria-controls="collapseThree">
+        <h4 class="panel-title">
+          <span class="glyphicon glyphicon-edit"></span>
+          Modifying issues in database
+        </h4>
+      </div>
+      <div id="collapseThree" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+        <div class="panel-body">
+          <ol>
+            <p><b>Pokud je uživatel přihlášen</b>, zobrazí se mu v tabulce možnosti manipulace s daty.</p>
+            <img class="img-thumbnail center-block" src="http://www.noirgoku.mablog.eu/screenshots/2017-05-20_204244.jpg">
+
+            <h4><li>Odstranění incidentu</li></h4>
+            <p>Po kliknutí na <button class="btn btn-xs btn-danger"><span class="glyphicon glyphicon-remove"></span></button> je issue okamžitě a nenávratně smazán z databáze.</p>
+
+            <h4><li>Úprava informací</li></h4>
+            <p>Po kliknutí na <button class="btn btn-xs btn-primary"><span class="glyphicon glyphicon-edit"></span></button> se otevře nové okno, ve kterém je možnost měnit:</p>
+            <ul>
+              <li>Číslo incidentu</li>
+              <li>Osobu, která incident zadala</li>
+              <li>Datum</li>
+              <li>Stručný popis</li>
+              <li>Detaily</li>
+            </ul>
+          </ol>
+        </div>
+      </div>
+    </div>
 
   </div>
 </div>
