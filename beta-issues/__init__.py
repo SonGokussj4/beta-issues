@@ -104,7 +104,6 @@ def issue_status():
     for row in issues:
         issue = row[1]
         found = cur.execute("SELECT * FROM resolved_issues WHERE issue = ?", [issue]).fetchall()
-        print("DEBUG: ISSUE: {}, found: {}".format(issue, found))
         if len(found) > 0:
             resolved.append(row)
         else:
@@ -163,10 +162,8 @@ def edit_issue():
     if not session.get('logged_in'):
         abort(401)
 
-    if request.method == 'POST':
-        if request.form.get('submit') == 'details':
-            print("JOJO")
-            sys.exit()
+    if request.method == 'POST' and request.form.get('submit') == 'details':
+        sys.exit()
 
     cur, db = get_db(cursor=True)
     cur.execute("SELECT * FROM issues WHERE issue = ?", [request.form.get('orig_issue')])
@@ -175,8 +172,6 @@ def edit_issue():
     if len(res) == 0:
         flash("This issue was not found in database... Weird...", 'danger')
         return redirect(url_for('issue_status'))
-
-    print(dict(request.form))
 
     cur.execute("UPDATE issues SET issue = ?, description = ?, date_issued = ?, author = ?, details = ? WHERE issue = ?", (
         request.form.get('issue'),
@@ -248,7 +243,6 @@ def upload_changes():
                              "<p>Description: {}</p>".format(issue_num, description))
                 flash(msg, 'success')
                 # Update the issue, insert date in column date_resolved
-                print("DEBUG:", version, issue_num)
                 cur.execute("UPDATE issues SET date_resolved = ?, version = ? WHERE issue = ?", (
                     datetime.datetime.today().strftime('%Y-%m-%d'),
                     version,
