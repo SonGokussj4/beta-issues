@@ -109,7 +109,10 @@ def issue_status():
             resolved.append(row)
         else:
             unresolved.append(row)
-    return render_template('issue_status.html', resolved=resolved, unresolved=unresolved)
+
+    all_issues = {'resolved': resolved, 'unresolved': unresolved}
+    today = datetime.datetime.today().strftime('%Y-%m-%d')
+    return render_template('issue_status.html', all_issues=all_issues, today=today)
 
 
 @app.route('/add_issue/', methods=['GET', 'POST'])
@@ -170,7 +173,7 @@ def edit_issue():
     res = cur.fetchall()
 
     if len(res) == 0:
-        flash("This issue was not found in database... Weird...")
+        flash("This issue was not found in database... Weird...", 'danger')
         return redirect(url_for('issue_status'))
 
     print(dict(request.form))
@@ -186,7 +189,7 @@ def edit_issue():
     db.commit()
     gc.collect()
 
-    flash("Issue: {} was modified successfully.".format(request.form.get('issue')), 'success')
+    flash("Issue: [{}] was modified successfully.".format(request.form.get('issue')), 'success')
 
     return redirect(url_for('issue_status'))
 
@@ -317,7 +320,7 @@ def register_page():
             cur = db.execute("""SELECT * FROM users WHERE username = "{}" """.format(username))
             found_users = cur.fetchall()
             if len(found_users) > 0:
-                flash("That username is already taken, please choose another")
+                flash("That username is already taken, please choose another", 'danger')
                 return render_template('register.html', form=form)
             else:
                 db.execute("INSERT INTO users (username, password, email) VALUES (?, ?, ?)",
@@ -353,7 +356,7 @@ def issue_modify():
     cur, db = get_db(cursor=True)
     cur.execute("SELECT * FROM issues WHERE issue = ? LIMIT 1", [issue])
     res = dict(cur.fetchone())
-    flash("Issue: {} deleted.".format(res.get('issue')), 'danger')
+    flash("Issue: [{}] deleted.".format(res.get('issue')), 'danger')
 
     cur.execute("DELETE FROM issues WHERE issue = ?", [res.get('issue')])
     db.commit()
