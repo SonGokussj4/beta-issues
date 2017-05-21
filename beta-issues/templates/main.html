@@ -3,18 +3,35 @@
 {% block body %}
 
 <div class="container-fluid">
-  <p>This site is mainly for Evektor company. We are using ANSA/META software from greek company BETA CAE.</p>
 
-  <p>BETA rolls updates monthly, always releasing their:
-    <ul><em>ANSA_release_notes.pdf</em></ul>
-    <ul><em>META_release_notes.pdf</em></ul>
-  which contain fields of resolved incidents in format:
-    <ul><em>[ Resolved Incident: ANSA-16523]</em></ul></p>
+  <h3>Wellcome!</h3>
+  <p>You can view status of all our issues in <a href="{{ url_for('issue_status') }}"><button class="btn btn-xs btn-primary"><span class="glyphicon glyphicon-list"></span> Issues Status</button></a></p>
+  <p>See <a href="{{ url_for('help_page') }}"><button class="btn btn-xs btn-primary"><span class="glyphicon glyphicon-question-sign"></span> Help</button></a> for additional informations.</p>
+  <p><span class="alert alert-info alert-inline">User has to be <b>logged in</b> for manipulating with database.</span> <em>(Anyone can, for now, register.)</em></p>
 
-  <p>But sometimes more than one issues in line, sometimes without the brackets or <em>Resolved Incident</em> text, sometimes the incident is in format <em>META-34655</em> or <em>#59631</em> or just a number.</p>
+  <h3>What does this app do?</h3>
+  <p>This is an <b>issue tracker</b> specific for <a href="https://www.beta-cae.com/">ANSA/META software</a> from BETA CAE company.</p>
 
-  <p>The purpose of this WebApp is to <strong>upload</strong> these PDF files, <strong>save issues</strong> into database and <strong>compare</strong> resolved issues with <strong>our issues</strong> that were added by <em>Add New Issue</em> tab in above navigation.</p>
+  <p>BETA rolls software updates once in a month/two with <b>PDFs containing resolved issues</b>:
+  <ul>
+    <li><code>ANSA_release_notes.pdf</code>, <code>META_release_notes.pdf</code>, ...</li>
+  </ul>
 
-  <p>Result is a <a href="{{ url_for('issue_status') }}"><button class="btn btn-xs btn-default">comprehensive table</button></a> indicating which of our issues are resolved and which are still waiting...</p>
+  <p>These contain fields of resolved incidents in format:</p>
+  <ul>
+    <li><code>[ Resolved Incident: ANSA-16523]</code>, <code>[ Resolved Incident: #4635, META-31523]</code>, and so on...</li>
+  </ul>
+
+  <br>
+  <h4>The purpose of this WebApp is to:</h4>
+  <ul>
+    <li><a href="{{ url_for('upload_release_changes') }}"><button class="btn btn-xs btn-primary"><span class="glyphicon glyphicon-upload"></span> Upload Release Changes</button></a> (these PDF files),</li>
+    <li>which <strong>saves resolved issues</strong> into database</li>
+    <li>and <strong>compares them </strong> with <strong>our pending issues</strong> (added manually in the <a href="{{ url_for('issue_status') }}"><button class="btn btn-xs btn-primary"><span class="glyphicon glyphicon-list"></span> Issues Status</button></a> page)</li>
+    <li><strong>inform user</strong> about new resolved issues (if any)</li>
+    <li>automatically update tables of Un/Resolved issues in <a href="{{ url_for('issue_status') }}"><button class="btn btn-xs btn-primary"><span class="glyphicon glyphicon-list"></span> Issues Status</button></a> page</li>
+  </ul>
+
+
 </div>
 {% endblock %}
