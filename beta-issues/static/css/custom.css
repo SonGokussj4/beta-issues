@@ -63,3 +63,8 @@ div#issue-panel table th#modify {width: 8%;}
   border: 1px solid transparent;
   border-radius: 4px;
 }
+
+/*Search bar for DataTables sort*/
+.dataTables_filter input {
+  border: 1px solid lightgray;
+}
