@@ -30,13 +30,13 @@ code {
 }
 
 div#issue-panel {margin-top: 50px;}
-table#issues #issue {width: 11%;}
-table#issues #details {width: 9%;}
-table#issues #date_issued {width: 9%;}
-table#issues #date_resolved {width: 9%;}
-table#issues #version {width: 10%;}
-table#issues #author {width: 10%;}
-table#issues #modify {width: 8%;}
+div#issue-panel table th#issue {width: 12%;}
+div#issue-panel table th#details {width: 9%;}
+div#issue-panel table th#date_issued {width: 9%;}
+div#issue-panel table th#date_resolved {width: 9%;}
+div#issue-panel table th#version {width: 10%;}
+div#issue-panel table th#author {width: 10%;}
+div#issue-panel table th#modify {width: 8%;}
 
 
 /* Custom modal width*/
