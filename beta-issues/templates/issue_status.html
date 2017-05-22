@@ -36,7 +36,7 @@
 <div class="container">
 
   <div id="issue-panel" class="panel panel-primary">
-    <div class="panel-heading">Unresolved Issues <spam class="badge">{{ unresolved|length }}</spam></div>
+    <div class="panel-heading">Unresolved Issues <spam class="badge">{{ all_issues['unresolved']|length }}</spam></div>
     <div class="panel-body">
       <form method="post" action="{{ url_for('issue_modify') }}">
         <table id="tbl-unresolved-issues" class="table table-hover tablesorter">
@@ -102,7 +102,7 @@
   </div>
 
   <div id="issue-panel" class="panel panel-success">
-    <div class="panel-heading">Resolved Issues <spam class="badge">{{ resolved|length }}</spam></div>
+    <div class="panel-heading">Resolved Issues <spam class="badge">{{ all_issues['resolved']|length }}</spam></div>
     <div class="panel-body">
       <form method="post" action="{{ url_for('issue_modify') }}">
         <table id="tbl-resolved-issues" class="table table-hover tablesorter">
