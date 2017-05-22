@@ -39,7 +39,7 @@
     <div class="panel-heading">Unresolved Issues <spam class="badge">{{ all_issues['unresolved']|length }}</spam></div>
     <div class="panel-body">
       <form method="post" action="{{ url_for('issue_modify') }}">
-        <table id="tbl-unresolved-issues" class="table table-hover tablesorter">
+        <table id="tbl-unresolved-issues" class="display">
           <thead>
             <tr>
               <th id="issue">Issue</th>
@@ -105,7 +105,7 @@
     <div class="panel-heading">Resolved Issues <spam class="badge">{{ all_issues['resolved']|length }}</spam></div>
     <div class="panel-body">
       <form method="post" action="{{ url_for('issue_modify') }}">
-        <table id="tbl-resolved-issues" class="table table-hover tablesorter">
+        <table id="tbl-resolved-issues" class="display">
           <thead>
             <tr>
               <th id="issue">Issue</th>
@@ -225,12 +225,14 @@
 <!-- JavaScript for the Modal EDIT_ISSUE -->
 <script>
 
-  $(function(){
-    $("#tbl-unresolved-issues").tablesorter({
-
-    });
-    $("#tbl-resolved-issues").tablesorter();
-  });
+  $(document).ready( function () {
+      $('#tbl-unresolved-issues').DataTable({
+        paging: false,
+      });
+      $("#tbl-resolved-issues").DataTable({
+        paging: false,
+      });
+  } );
 
   // Prevent Bootstrap dialog from blocking focusin
   $(document).on('focusin', function(e) {
