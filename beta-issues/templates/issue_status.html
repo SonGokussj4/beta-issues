@@ -110,10 +110,10 @@
             <tr>
               <th id="issue">Issue</th>
               <th id="description">Description</th>
+              <th id="version">Version</th>
               <th id="details">Details</th>
               <th id="date_issued">Issued</th>
               <th id="date_resolved">Resolved</th>
-              <th id="version">Version</th>
               {% if session.logged_in -%}
                 <th id="modify">Modify</th>
               {% endif %}
@@ -132,6 +132,7 @@
               <tr>
                 <td><spam style="font-family: monospace;">{{ issue }}</spam></td>
                 <td>{{ description }}</td>
+                <td>{{ version }}</td>
                 <td>
                   {% if not details|length == 0 %}
                     <span href="#issueStatus_showDetailsModal" class="open-issueStatus_showDetailsModal" data-toggle="modal" data-details="{{ details }}" data-issue="{{ issue }}">
@@ -144,7 +145,6 @@
                 </td>
                 <td>{{ date_issued }}</td>
                 <td>{{ date_resolved }}</td>
-                <td>{{ version }}</td>
                 {% if session.logged_in -%}
                   <td>
                     <span href="#issueStatus_editModal" class="open-issueStatus_editModal" data-toggle="modal"
