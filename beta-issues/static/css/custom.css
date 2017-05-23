@@ -42,11 +42,11 @@ div#issue-panel table td {
   padding: 6px 6px;
   text-align: center;
 }
-#tbl-unresolved-issues > tbody > tr > td:nth-child(2),
-#tbl-resolved-issues > tbody > tr > td:nth-child(2) {
+table#tbl-unresolved-issues > tbody > tr > td:nth-child(2),
+table#tbl-resolved-issues > tbody > tr > td:nth-child(2) {
   text-align: left;
 }
-.dataTables_info {font-size: 0.9em; color: lightgray !important;}
+input.dataTables_info {font-size: 0.9em; color: lightgray !important;}
 
 
 /* Custom modal width*/
@@ -77,4 +77,8 @@ div#issue-panel table td {
 /*Search bar for DataTables sort*/
 .dataTables_filter input {
   border: 1px solid lightgray;
+}
+
+.dataTables_paginate {
+  font-size: 0.8em;
 }

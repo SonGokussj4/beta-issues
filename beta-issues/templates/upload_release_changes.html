@@ -2,39 +2,126 @@
 
 {% block body %}
 
-<h3>Upload βETA release notes</h3>
+<div class="container">
 
-<div class="row">
-  <form action="{{ url_for('upload_changes') }}" enctype=multipart/form-data method="post" class="form-horizontal" enctype="multipart/form-data">
+  <div class="row text-center">
+    <h3>Upload βETA release notes</h3>
+  </div>
 
-    <div class="form-group">
-      <label for="UploadFiles" class="col-sm-2 control-label">Select (Multiple) Release Notes PDF(s):</label>
-      <div class="col-sm-8">
-        <label class="control-label" style="padding-bottom: 5px;">Example: ANSA_release_notes.pdf, META_Release_Notes_v16.x.x.pdf, ANSA_v17.1.1_Release_Notes.pdf, ...</label>
-        <input id="input-1a" name=UploadFiles type="file" class="file-loading" multiple>
+  <div class="row col-sm-10 col-sm-offset-2">
+      <p>Examples:</p>
+      <p><code>ANSA_release_notes.pdf</code>, <code>META_Release_Notes_v16.x.x.pdf</code>, <code>ANSA_v17.1.1_Release_Notes.pdf</code></p>
+  </div>
+
+  <div class="row">
+    <form action="{{ url_for('upload_changes') }}" enctype=multipart/form-data method="post" class="form-horizontal" enctype="multipart/form-data">
+
+      <div class="form-group">
+        <label for="UploadFiles" class="col-sm-2 control-label">Select (Multiple) Release Notes PDF(s):</label>
+        <div class="col-sm-8">
+          <input id="input-1a" name=UploadFiles type="file" class="file-loading" multiple>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="col-sm-offset-2 col-sm-8">
+          <button type="submit" class="btn btn-default" id="loading-forever-btn" data-loading-text="<i class='fa fa-cog fa-spin'></i> Processing PDF(s), please wait...">Upload</button>
+      </div>
+
+    </form>
+  </div>
+
+  <div class="row">
+    <div id="kv-error-2" style="margin-top:10px;"></div>
+    <p class="text-center" style="font-size: 1.5em;">Current number of uploaded issues:</p>
+
+    <p class="text-center">
+      <button class="btn btn-static btn-sm" style="margin-top: 3px; width: 160px !important; font-size: 1em;">
+        TOTAL &nbsp;<span class="badge" style="font-size: 1em;">{{ resolved_issues_in_db }}</span>
+      </button>
+    </p>
+
+    <div class="text-center" style="padding-top: 30px;">
+      {% for data in nums -%}
+        {% if data.get('version') != '' %}
+          <button class="btn btn-static btn-sm" style="margin-top: 3px; width: 160px !important ">{{ data.get('version') }} <span class="badge">{{ data.get('COUNT(1)') }}</span></button>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <br>
+
+  <div class="row col-sm-8 col-sm-offset-2">
+
+    <button type="button" class="btn btn-primary center-block" data-toggle="collapse" data-target="#collapse-data-in-db" aria-expanded="false" aria-controls="inc_add_issue">
+      <span class="glyphicon glyphicon-sort-by-alphabet"></span>
+      DETAILS - Table of Individual Issues in DB
+    </button>
+
+    <div class="collapse" id="collapse-data-in-db" style="padding-bottom: 200px;">
+      <div id="issue-panel" class="panel panel-primary">
+        <div class="panel-heading">
+          Resolved issues in database <spam class="badge">{{ resolved_issues_in_db }}</spam>
+        </div>
+
+        <div class="panel-body">
+          <form>
+            <table id="tbl-resolved-issues-in-db" class="display">
+              <thead>
+                <tr>
+                  <th>Issue</th>
+                  <th>Version</th>
+                  <th>Date Resolved</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for data in issues_db %}
+                  {% set id = data[0] -%}
+                  {% set issue = data[1] -%}
+                  {% set version = data[2] -%}
+                  {% set date_resolved = data[3] -%}
+                  {# {% if session.logged_in -%}
+                    <th id="modify">Modify</th>
+                  {% endif %} #}
+                <tr>
+                  <td>{{ issue }}</td>
+                  <td>{{ version }}</td>
+                  <td>{{ date_resolved }}</td>
+                  {# {% if session.logged_in -%}
+                    <td>
+                      <span href="#issueStatus_editModal" class="open-issueStatus_editModal" data-toggle="modal"
+                            data-id="{{ id }}"
+                            data-issue="{{ issue }}"
+                            data-version="{{ version }}"
+                            data-date_resolved="{{ date_resolved }}">
+                        <a data-toggle="tooltip"  title="Edit issue: {{ issue }}" class="btn btn-xs btn-primary">
+                          <span class="glyphicon glyphicon-edit" ></span>
+                        </a>
+                      </span>
+                      <button name="remove_issue" value="{{ issue }}" type="submit" class="btn btn-xs btn-danger" data-toggle=        "tooltip" data-placement="top" title="Remove issue: {{ issue }}">
+                        <span class="glyphicon glyphicon-remove"></span>
+                      </button>
+                    </td>
+                  {% endif -%} #}
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </form>
+        </div>
       </div>
     </div>
-
-    <div class="form-group">
-      <div class="col-sm-offset-2 col-sm-8">
-        <button type="submit" class="btn btn-default" id="loading-forever-btn" data-loading-text="<i class='fa fa-cog fa-spin'></i> Processing PDF(s), please wait...">Upload</button>
-    </div>
-
-  </form>
-</div>
-
-<div class="row">
-  <div id="kv-error-2" style="margin-top:10px;"></div>
-  <p class="text-center" style="font-size: 1.5em;">Current number of uploaded issues:</p>
-  <p class="text-center" style="font-size: 1.5em;"><spam class="bg-success" style="padding: 5px;">{{ resolved_issues_in_db }}</spam></p>
-  <div class="text-center" style="padding-top: 30px;">
-    {% for data in nums -%}
-      {% if data.get('version') != '' %}
-        <button class="btn btn-static btn-sm" style="margin-top: 3px; width: 160px !important ">{{ data.get('version') }} <spam class="badge">{{ data.get('COUNT(1)') }}</spam></button>
-        {# <br> #}
-      {% endif %}
-    {% endfor %}
   </div>
 </div>
+
+<script>
+  $(document).ready( function () {
+      $('#tbl-resolved-issues-in-db').DataTable({
+        "pagingType": "simple_numbers",
+        "pageLength": 25,
+      });
+  } );
+</script>
 
 {% endblock %}
