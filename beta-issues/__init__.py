@@ -1,13 +1,15 @@
 import os
 import sys
-from flask import Flask, render_template, flash, request, url_for, redirect, session, g, abort, Markup
+from flask import Flask, render_template, flash, request, url_for, redirect, session, abort, Markup
 from werkzeug.utils import secure_filename
 from functools import wraps
 from wtforms import Form, TextField, PasswordField, BooleanField, validators
 from passlib.hash import sha256_crypt
 import datetime
 import gc
-import sqlite3
+from .models import Issues, User
+from .database import db
+from sqlalchemy import func
 
 # User scripts
 sys.path.append(os.path.abspath(os.path.join(os.path.curdir, 'static', 'scripts')))
@@ -23,7 +25,13 @@ app.config.update(dict(
     USERNAME='admin',
     PASSWORD='default',
     UPLOAD_FOLDER=os.path.join(app.root_path, 'static', 'upload'),
+    SQLALCHEMY_DATABASE_URI='sqlite:///database.db',
+    SQLALCHEMY_TRACK_MODIFICATIONS=False,
 ))
+
+db.init_app(app)
+with app.app_context():
+    db.create_all()
 
 
 def login_required(f):
@@ -35,48 +43,6 @@ def login_required(f):
             flash("You need to login first")
             return redirect(url_for('login'))
     return wrap
-
-
-def init_db():
-    cur, db = get_db(cursor=True)
-    with app.open_resource(app.config['SCHEMA'], mode='r') as f:
-        # Reads schema.sql and injects it into db
-        contents = f.read()
-        cur.executescript(contents)
-    # Has to be commited after commands
-    db.commit()
-
-
-@app.cli.command('initdb')
-def initdb_command():
-    """Initializes the database. Can be done by cmd: $flask initdb."""
-    print('Initialising the database')
-    init_db()
-    print('Database initialized.')
-
-
-def connect_db():
-    """Connects to the specific database."""
-    rv = sqlite3.connect(app.config['DATABASE'])
-    rv.row_factory = sqlite3.Row
-    return rv
-
-
-def get_db(cursor=False):
-    """Opens a new database connection of there is none yet for the current application context."""
-    if not hasattr(g, 'sqlite_db'):
-        g.sqlite_db = connect_db()
-    if cursor:
-        c = g.sqlite_db.cursor()
-        return c, g.sqlite_db
-    return g.sqlite_db
-
-
-@app.teardown_appcontext
-def close_db(error):
-    """Closes the database again at the end of the request."""
-    if hasattr(g, 'sqlite_db'):
-        g.sqlite_db.close()
 
 
 @app.errorhandler(404)
@@ -97,21 +63,12 @@ def help_page():
 
 @app.route('/issue_status/')
 def issue_status():
-    cur, db = get_db(cursor=True)
-    issues = cur.execute("SELECT * FROM issues").fetchall()
-    resolved, unresolved = [], []
-
-    for row in issues:
-        issue = row[1]
-        found = cur.execute("SELECT * FROM resolved_issues WHERE issue = ?", [issue]).fetchall()
-        if len(found) > 0:
-            resolved.append(row)
-        else:
-            unresolved.append(row)
-
-    all_issues = {'resolved': resolved, 'unresolved': unresolved}
+    resolved = Issues.query.filter_by(evektor=True, resolved=True).all()
+    unresolved = Issues.query.filter_by(evektor=True, resolved=False).all()
+    issues = {'resolved': resolved, 'unresolved': unresolved}
     today = datetime.datetime.today().strftime('%Y-%m-%d')
-    return render_template('issue_status.html', all_issues=all_issues, today=today)
+
+    return render_template('issue_status.html', today=today, issues=issues)
 
 
 @app.route('/add_issue/', methods=['GET', 'POST'])
@@ -119,39 +76,47 @@ def add_issue():
     if not session.get('logged_in'):
         abort(401)
 
-    cur, db = get_db(cursor=True)
-    issue = request.form.get('issue')
-    version = ""
-    date_resolved = ""
+    issue = request.form.get('issue').strip()
+    description = request.form.get('description')
+    date_issued = request.form.get('date_issued').strip()
+    author = request.form.get('author').strip()
+    details = request.form.get('details')
 
-    existing = cur.execute("SELECT * FROM issues WHERE issue = ?", [issue]).fetchall()
-    if len(existing) > 0:
-        flash("This issue already exists...", 'danger')
-        return redirect(url_for('issue_status'))
-
-    # Check if issue is already resolved:
-    # resolved = cur.execute("SELECT EXISTS(SELECT 1 FROM resolved_issues WHERE issue = ? LIMIT 1)", [issue]).fetchone()[0]
-    resolved = cur.execute("SELECT * from resolved_issues WHERE issue = ?", [issue]).fetchall()
-    if len(resolved) > 0:
-        sqlRow = dict(resolved[0])
-        version = sqlRow.get('version')
-        date_resolved = sqlRow.get('date_resolved')
-        flash("This issue is already resolved! [{}] in {}".format(version, date_resolved), 'success')
-
-    cur.execute(
-        "INSERT INTO issues "
-        "(issue, description, date_issued, author, details, date_resolved, version) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?)", (
-            issue,
-            request.form.get('description'),
-            request.form.get('date_issued'),
-            request.form.get('author'),
-            request.form.get('details'),
-            date_resolved,
-            version
-        ))
-    db.commit()
-    gc.collect()
+    issue_found = Issues.query.filter_by(issue=issue).all()
+    # Issue not in DB, add it
+    if len(issue_found) == 0:
+        print("DEBUG", "len(issue_found) == 0", "issue_found", issue_found)
+        issue_add = Issues(
+            issue=issue,
+            evektor=True,
+            description=description,
+            date_issued=date_issued,
+            author=author,
+            details=details,
+        )
+        db.session.add(issue_add)
+    # Issue found in DB
+    else:
+        print("DEBUG", "ELSE", "issue_found", issue_found)
+        q = Issues.query.filter_by(issue=issue, resolved=True).one_or_none()
+        # Issue is already tagged as RESOLVED, update other attributes
+        if q:
+            msg = Markup("<p><strong>This issue is already resolved!</strong></p>"
+                         "<p>Version: {}</p>"
+                         "<p>Date resolved: {}</p>".format(q.version, q.date_resolved))
+            flash(msg, 'success')
+            Issues.query.filter_by(issue=issue).update(dict(
+                evektor=True,
+                description=description,
+                date_issued=date_issued,
+                author=author,
+                details=details,
+            ))
+        # Issue is UNRESOLVED, user tries to add existing issue
+        else:
+            flash("Issue <{}> already exists...".format(issue), 'danger')
+            return redirect(url_for('issue_status'))
+    db.session.commit()
 
     flash('New issue was successfully added into database.', 'success')
     return redirect(url_for('issue_status'))
@@ -165,42 +130,34 @@ def edit_issue():
     if request.method == 'POST' and request.form.get('submit') == 'details':
         sys.exit()
 
-    cur, db = get_db(cursor=True)
-    cur.execute("SELECT * FROM issues WHERE issue = ?", [request.form.get('orig_issue')])
-    res = cur.fetchall()
+    orig_issue = request.form.get('orig_issue')
 
+    res = Issues.query.filter_by(issue=orig_issue).all()
     if len(res) == 0:
         flash("This issue was not found in database... Weird...", 'danger')
         return redirect(url_for('issue_status'))
 
-    cur.execute("UPDATE issues SET issue = ?, description = ?, date_issued = ?, author = ?, details = ? WHERE issue = ?", (
-        request.form.get('issue'),
-        request.form.get('description'),
-        request.form.get('date_issued'),
-        request.form.get('author'),
-        request.form.get('details'),
-        request.form.get('orig_issue')
+    Issues.query.filter_by(issue=orig_issue).update(dict(
+        issue=request.form.get('issue'),
+        description=request.form.get('description'),
+        date_issued=request.form.get('date_issued'),
+        author=request.form.get('author'),
+        details=request.form.get('details'),
     ))
-    db.commit()
-    gc.collect()
 
+    db.session.commit()
     flash("Issue: [{}] was modified successfully.".format(request.form.get('issue')), 'success')
-
     return redirect(url_for('issue_status'))
 
 
 @app.route('/upload_release_changes/')
 @login_required
 def upload_release_changes():
-    cur, db = get_db(cursor=True)
-    data = cur.execute("SELECT * FROM resolved_issues")
-    issues_db = data.fetchall()
-    issues = len(issues_db)
-
-    data = cur.execute("SELECT version, COUNT(1) FROM resolved_issues GROUP BY version ORDER BY version DESC")
-    nums = [dict(num) for num in data.fetchall()]
-
-    return render_template('upload_release_changes.html', resolved_issues_in_db=issues, nums=nums, issues_db=issues_db)
+    data = db.session.query(Issues.version, func.count('issue')).group_by('version').all()
+    data = [(version, count) for (version, count) in data if version is not None]  # [('None', 1), ('ANSA v...')]
+    versions = sorted(data, reverse=True)  # [('META v17.0.1', '46'), ('ANSA v17.1.0', '86'), ...]
+    resolved_db = Issues.query.filter_by(resolved=True).all()  # return all issues with attr resolved = True
+    return render_template('upload_release_changes.html', resolved_db=resolved_db, versions=versions)
 
 
 @app.route('/upload_release_changes/', methods=['GET', 'POST'])
@@ -227,37 +184,45 @@ def upload_changes():
             return redirect(request.url)
         os.remove(filepath)
 
-    cur, db = get_db(cursor=True)
-    count = 0
     # Iterate over found issues in PDF
+    count = 0
     for issue_tuple in issues:
         issue, version = issue_tuple
-        # Check if issue is not already in database, if not (found == 0), continue
-        found = cur.execute("SELECT EXISTS(SELECT 1 FROM resolved_issues WHERE issue = ? LIMIT 1)", [issue]).fetchone()[0]
-        if found == 0:
-            # Check if this issue is not in your database of issues, if yes, notify user about it
-            unresolved = cur.execute("SELECT * FROM issues where issue = ?", [issue]).fetchall()
-            if len(unresolved) > 0:
-                issue_num, description = unresolved[0][1], unresolved[0][2]  # uid, issue, description
+
+        issue_in_db = Issues.query.filter_by(issue=issue).all()
+        # Not in DB: add name, version, date resolved, resolved
+        if len(issue_in_db) == 0:
+            # flash("ADDING Issue: [{}]".format(issue))
+            issue_add = Issues(
+                issue=issue,
+                version=version,
+                date_resolved=datetime.datetime.today().strftime('%Y-%m-%d'),
+                resolved=True,
+            )
+            db.session.add(issue_add)
+            count += 1
+        # In DB
+        else:
+            issue_resolved = Issues.query.filter_by(issue=issue, resolved=True).all()
+            # Already uploaded from PDF, not unresolved issue, ignore
+            if len(issue_resolved) == 1:
+                pass
+            # Not uploaded from PDF, update version, date resolved, resolved to True
+            else:
+                q = Issues.query.filter_by(issue=issue)
+                subq = q.with_entities(Issues.issue, Issues.description).one()
+                issue_num, description = subq
                 msg = Markup("<p><strong>Our issue resolved!</strong></p>"
                              "<p>Issue: {}</p>"
                              "<p>Description: {}</p>".format(issue_num, description))
                 flash(msg, 'success')
-                # Update the issue, insert date in column date_resolved
-                cur.execute("UPDATE issues SET date_resolved = ?, version = ? WHERE issue = ?", (
-                    datetime.datetime.today().strftime('%Y-%m-%d'),
-                    version,
-                    issue_num
+                Issues.query.filter_by(issue=issue).update(dict(
+                    version=version,
+                    date_resolved=datetime.datetime.today().strftime('%Y-%m-%d'),
+                    resolved=True,
                 ))
-            # Update the database of resolved issues (from PDF)
-            cur.execute("INSERT OR IGNORE INTO resolved_issues (issue, version, date_resolved) VALUES (?, ?, ?)", [
-                issue,
-                version,
-                datetime.datetime.today().strftime('%Y-%m-%d')
-            ])
-            count += 1  # count the number of newly added (not already there) issues into resolved_issues db
-    db.commit()
-    gc.collect()
+                count += 1
+    db.session.commit()
 
     msg = Markup("<p>{} resolved issues found in selected document(s).</p>"
                  "<p><strong>{}</strong> new issues added to database.</p>".format(len(issues), count))
@@ -269,26 +234,25 @@ def upload_changes():
 def login():
     error = None
     try:
-        db = get_db()
-        cur = db.cursor()
         if request.method == 'POST':
-            cur.execute("SELECT * FROM users WHERE username = ?", [request.form.get('username')])
+            form_username = request.form.get('username')
+            form_password = request.form.get('password')
 
-            data = cur.fetchone()
-            username, password = data[1], data[2]
+            q = User.query.filter_by(username=form_username).one_or_none()
 
-            if sha256_crypt.verify(request.form.get('password'), password):
+            if q and sha256_crypt.verify(form_password, q.password):
                 session['logged_in'] = True
-                session['username'] = username
+                session['username'] = q.username
                 flash("Your are now logged in", 'success')
                 return redirect(url_for('issue_status'))
             else:
                 error = "Invalid credentials, try again."
-        gc.collect()
+
         return render_template('login.html', error=error)
 
     except Exception as e:
         error = "Invalid credentials, try again."
+        flash(e)
         return render_template('login.html', error=error)
 
 
@@ -299,10 +263,10 @@ class RegistrationForm(Form):
                                           validators.EqualTo('confirm', message="Passwords must match.")])
     confirm = PasswordField('Repeat Password')
     accept_tos = BooleanField('I accept the Terms of Service and the Privacy notice.',
-        [validators.Required()])
+                              [validators.Required()])
 
 
-@app.route('/register/', methods=['GET', 'POST'])  # /?variable=this (post)
+@app.route('/register/', methods=['GET', 'POST'])
 def register_page():
     try:
         form = RegistrationForm(request.form)
@@ -311,23 +275,22 @@ def register_page():
             username = form.username.data
             email = form.email.data
             password = sha256_crypt.encrypt(str(form.password.data))
-            db = get_db()
-            cur = db.execute("""SELECT * FROM users WHERE username = "{}" """.format(username))
-            found_users = cur.fetchall()
-            if len(found_users) > 0:
-                flash("That username is already taken, please choose another", 'danger')
-                return render_template('register.html', form=form)
-            else:
-                db.execute("INSERT INTO users (username, password, email) VALUES (?, ?, ?)",
-                           (username, password, email))
-                db.commit()
-                flash("Thanks for registering.", 'success')
-                gc.collect()  # garbage collection, clear unused cache memory, important
+            flash("{}, {}, {}".format(username, email, password))
+            # q = User.query.filter_by(username=username).all()
+            # if len(q) != 0:
+            #     flash("That username is already taken, please choose another", 'danger')
+            #     return render_template('register.html', form=form)
 
-                session['logged_in'] = True
-                session['username'] = username
+            # user_add = User(username=username, password=password, email=email)
+            # db.session.add(user_add)
+            # db.session.commit()
 
-                return redirect(url_for('issue_status'))
+            # flash("Thanks for registering.", 'success')
+
+            # session['logged_in'] = True
+            # session['username'] = username
+
+            # return redirect(url_for('issue_status'))
 
         return render_template('register.html', form=form)
 
@@ -347,15 +310,19 @@ def logout():
 @app.route('/issue_status/', methods=['GET', 'POST'])
 def issue_modify():
     issue = request.form.get('remove_issue')
-
-    cur, db = get_db(cursor=True)
-    cur.execute("SELECT * FROM issues WHERE issue = ? LIMIT 1", [issue])
-    res = dict(cur.fetchone())
-    flash("Issue: [{}] deleted.".format(res.get('issue')), 'danger')
-
-    cur.execute("DELETE FROM issues WHERE issue = ?", [res.get('issue')])
-    db.commit()
-    gc.collect()
+    q = Issues.query.filter_by(issue=issue).one()
+    if q.resolved:
+        Issues.query.filter_by(issue=issue).update(dict(
+            evektor=False,
+            description=None,
+            details=None,
+            author=None,
+            date_issued=None,
+        ))
+    else:
+        db.session.delete(q)
+    db.session.commit()
+    flash("Issue: [{}] deleted.".format(q.issue), 'danger')
     return redirect(url_for('issue_status'))
 
 

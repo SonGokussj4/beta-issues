@@ -37,14 +37,14 @@
 
     <p class="text-center">
       <button class="btn btn-static btn-sm" style="margin-top: 3px; width: 160px !important; font-size: 1em;">
-        TOTAL &nbsp;<span class="badge" style="font-size: 1em;">{{ resolved_issues_in_db }}</span>
+        TOTAL &nbsp;<span class="badge" style="font-size: 1em;">{{ resolved_db|length }}</span>
       </button>
     </p>
 
     <div class="text-center" style="padding-top: 30px;">
-      {% for data in nums -%}
-        {% if data.get('version') != '' %}
-          <button class="btn btn-static btn-sm" style="margin-top: 3px; width: 160px !important ">{{ data.get('version') }} <span class="badge">{{ data.get('COUNT(1)') }}</span></button>
+      {% for version, count in versions -%}
+        {% if version != None %}
+          <button class="btn btn-static btn-sm" style="margin-top: 3px; width: 160px !important ">{{ version }} <span class="badge">{{ count }}</span></button>
         {% endif %}
       {% endfor %}
     </div>
@@ -62,7 +62,7 @@
     <div class="collapse" id="collapse-data-in-db" style="padding-bottom: 200px;">
       <div id="issue-panel" class="panel panel-primary">
         <div class="panel-heading">
-          Resolved issues in database <spam class="badge">{{ resolved_issues_in_db }}</spam>
+          Resolved issues in database <spam class="badge">{{ resolved_db|length }}</spam>
         </div>
 
         <div class="panel-body">
@@ -76,18 +76,14 @@
                 </tr>
               </thead>
               <tbody>
-                {% for data in issues_db %}
-                  {% set id = data[0] -%}
-                  {% set issue = data[1] -%}
-                  {% set version = data[2] -%}
-                  {% set date_resolved = data[3] -%}
+                {% for row in resolved_db %}
                   {# {% if session.logged_in -%}
                     <th id="modify">Modify</th>
                   {% endif %} #}
                 <tr>
-                  <td>{{ issue }}</td>
-                  <td>{{ version }}</td>
-                  <td>{{ date_resolved }}</td>
+                  <td>{{ row.issue }}</td>
+                  <td>{{ row.version }}</td>
+                  <td>{{ row.date_resolved }}</td>
                   {# {% if session.logged_in -%}
                     <td>
                       <span href="#issueStatus_editModal" class="open-issueStatus_editModal" data-toggle="modal"

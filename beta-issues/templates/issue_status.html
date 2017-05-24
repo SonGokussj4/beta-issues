@@ -24,7 +24,7 @@
           </p>
           <p>
             <span class="label label-warning" style="font-size: 1em;">Warning</span>
-            It's <b>extremely important</b> to add the issue <b>as BETA wrote it</b>. For example <code>#64553</code> is full issue name. Not only <code>64553</code>.
+            It's <b>extremely important</b> to add the issue <b>as BETA wrote it</b>. For example <code>#64553</code> is full issue name. Not only <code>64553</code>. So is <code>ANSA-16585</code>, etc...
           </p>
           {% include 'includes/inc_new_issue.html' -%}
         </div>
@@ -36,10 +36,11 @@
 <div class="container">
 
   <div id="issue-panel" class="panel panel-primary">
-    <div class="panel-heading">Unresolved Issues <spam class="badge">{{ all_issues['unresolved']|length }}</spam></div>
+    {# <div class="panel-heading">Unresolved Issues <spam class="badge">{{ all_issues['unresolved']|length }}</spam></div> #}
+    <div class="panel-heading">Unresolved Issues <spam class="badge">{{ issues.resolved|length }}</spam></div>
     <div class="panel-body">
       <form method="post" action="{{ url_for('issue_modify') }}">
-        <table id="tbl-unresolved-issues" class="display" data-order='[[ 3, "des" ]]'>
+        <table id="tbl-unresolved-issues" class="display" data-order='[[ 3, "des" ]]' style="display:none">
           <thead>
             <tr>
               <th id="issue">Issue</th>
@@ -53,19 +54,15 @@
             </tr>
           </thead>
           <tbody>
-            {% for data in all_issues['unresolved'] -%}
-              {% set id = data[0] -%}
-              {% set issue = data[1] -%}
-              {% set description = data[2] -%}
-              {% set date_issued = data[3] -%}
-              {% set author = data[4] -%}
-              {% set details = data[5] -%}
+            {% for data in issues.unresolved -%}
               <tr>
-                <td><spam style="font-family: monospace;">{{ issue }}</spam></td>
-                <td>{{ description }}</td>
+                <td><spam style="font-family: monospace;">{{ data.issue }}</spam></td>
+                <td>{{ data.description }}</td>
                 <td>
-                  {% if not details|length == 0 %}
-                    <span href="#issueStatus_showDetailsModal" class="open-issueStatus_showDetailsModal" data-toggle="modal" data-details="{{ details }}">
+                  {% if not data.details|length == 0 %}
+                    <span href="#issueStatus_showDetailsModal" class="open-issueStatus_showDetailsModal" data-toggle="modal"
+                          data-details="{{ data.details }}",
+                          data-issue="{{ data.issue }}">
                       <a class="btn btn-xs btn-primary">
                         <span class="glyphicon glyphicon-paperclip" ></span>
                         &nbsp;Details
@@ -73,22 +70,22 @@
                     </span>
                   {% endif %}
                 </td>
-                <td>{{ date_issued }}</td>
-                <td>{{ author }}</td>
+                <td>{{ data.date_issued }}</td>
+                <td>{{ data.author }}</td>
                 {% if session.logged_in -%}
                   <td>
                     <span href="#issueStatus_editModal" class="open-issueStatus_editModal" data-toggle="modal"
-                          data-id="{{ id }}"
-                          data-issue="{{ issue }}"
-                          data-description="{{ description }}"
-                          data-date_issued="{{ date_issued }}"
-                          data-author="{{ author }}"
-                          data-details="{{ details }}">
-                      <a data-toggle="tooltip"  title="Edit issue: {{ issue }}" class="btn btn-xs btn-primary">
+                          data-id="{{ data.id }}"
+                          data-issue="{{ data.issue }}"
+                          data-description="{{ data.description }}"
+                          data-date_issued="{{ data.date_issued }}"
+                          data-author="{{ data.author }}"
+                          data-details="{{ data.details }}">
+                      <a data-toggle="tooltip"  title="Edit issue: {{ data.issue }}" class="btn btn-xs btn-primary">
                         <span class="glyphicon glyphicon-edit" ></span>
                       </a>
                     </span>
-                    <button name="remove_issue" value="{{ issue }}" type="submit" class="btn btn-xs btn-danger" data-toggle=        "tooltip" data-placement="top" title="Remove issue: {{ issue }}">
+                    <button name="remove_issue" value="{{ data.issue }}" type="submit" class="btn btn-xs btn-danger" data-toggle=        "tooltip" data-placement="top" title="Remove issue: {{ data.issue }}">
                       <span class="glyphicon glyphicon-remove"></span>
                     </button>
                   </td>
@@ -102,10 +99,10 @@
   </div>
 
   <div id="issue-panel" class="panel panel-success">
-    <div class="panel-heading">Resolved Issues <spam class="badge">{{ all_issues['resolved']|length }}</spam></div>
+    <div class="panel-heading">Resolved Issues <spam class="badge">{{ issues.resolved|length }}</spam></div>
     <div class="panel-body">
       <form method="post" action="{{ url_for('issue_modify') }}">
-        <table id="tbl-resolved-issues" class="display" data-order='[[ 5, "des" ]]'>
+        <table id="tbl-resolved-issues" class="display" data-order='[[ 5, "des" ]]' style="display:none">
           <thead>
             <tr>
               <th id="issue">Issue</th>
@@ -120,22 +117,16 @@
             </tr>
           </thead>
           <tbody>
-            {% for data in all_issues['resolved'] -%}
-              {% set id = data[0] -%}
-              {% set issue = data[1] -%}
-              {% set description = data[2] -%}
-              {% set date_issued = data[3] -%}
-              {% set author = data[4] -%}
-              {% set details = data[5] -%}
-              {% set date_resolved = data[6] -%}
-              {% set version = data[7] -%}
+            {% for data in issues.resolved -%}
               <tr>
-                <td><spam style="font-family: monospace;">{{ issue }}</spam></td>
-                <td>{{ description }}</td>
-                <td>{{ version }}</td>
+                <td><spam style="font-family: monospace;">{{ data.issue }}</spam></td>
+                <td>{{ data.description }}</td>
+                <td>{{ data.version }}</td>
                 <td>
-                  {% if not details|length == 0 %}
-                    <span href="#issueStatus_showDetailsModal" class="open-issueStatus_showDetailsModal" data-toggle="modal" data-details="{{ details }}" data-issue="{{ issue }}">
+                  {% if not data.details|length == 0 %}
+                    <span href="#issueStatus_showDetailsModal" class="open-issueStatus_showDetailsModal" data-toggle="modal"
+                          data-details="{{ data.details }}"
+                          data-issue="{{ data.issue }}">
                       <a class="btn btn-xs btn-primary">
                         <span class="glyphicon glyphicon-paperclip" ></span>
                         &nbsp;Details
@@ -143,24 +134,24 @@
                     </span>
                   {% endif %}
                 </td>
-                <td>{{ date_issued }}</td>
-                <td>{{ date_resolved }}</td>
+                <td>{{ data.date_issued }}</td>
+                <td>{{ data.date_resolved }}</td>
                 {% if session.logged_in -%}
                   <td>
                     <span href="#issueStatus_editModal" class="open-issueStatus_editModal" data-toggle="modal"
-                          data-id="{{ id }}"
-                          data-issue="{{ issue }}"
-                          data-description="{{ description }}"
-                          data-date_issued="{{ date_issued }}"
-                          data-author="{{ author }}"
-                          data-details="{{ details }}">
-                      <a data-toggle="tooltip"  title="Edit issue: {{ issue }}" class="btn btn-xs btn-primary">
+                          data-id="{{ data.id }}"
+                          data-issue="{{ data.issue }}"
+                          data-description="{{ data.description }}"
+                          data-date_issued="{{ data.date_issued }}"
+                          data-author="{{ data.author }}"
+                          data-details="{{ data.details }}">
+                      <a data-toggle="tooltip"  title="Edit issue: {{ data.issue }}" class="btn btn-xs btn-primary">
                         <span class="glyphicon glyphicon-edit" ></span>
                       </a>
                     </span>
                     <a>
-                      <button name="remove_issue" value="{{ issue }}" type="submit" class="btn btn-xs btn-danger"
-                              data-toggle="tooltip" data-placement="top" title="Remove issue: {{ issue }}">
+                      <button name="remove_issue" value="{{ data.issue }}" type="submit" class="btn btn-xs btn-danger"
+                              data-toggle="tooltip" data-placement="top" title="Remove issue: {{ data.issue }}">
                         <span class="glyphicon glyphicon-remove"></span>
                       </button>
                     </a>
@@ -192,7 +183,6 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-          {# <button type="submit" class="btn btn-primary">Save changes</button> #}
         </div>
     </div>
   </div>
@@ -226,32 +216,32 @@
 <script>
 
   $(document).ready( function () {
+      // $('#tbl-unresolved-issues').hide();
       $('#tbl-unresolved-issues').DataTable({
         paging: false,
-
       });
+      $('#tbl-unresolved-issues').show();
       $("#tbl-resolved-issues").DataTable({
         paging: false,
       });
+      $('#tbl-resolved-issues').show();
   } );
 
-  // Prevent Bootstrap dialog from blocking focusin
-  $(document).on('focusin', function(e) {
-    if ($(e.target).closest(".mce-window").length) {
-      e.stopImmediatePropagation();
-    }
-  });
+  // // Prevent Bootstrap dialog from blocking focusin
+  // $(document).on('focusin', function(e) {
+  //   if ($(e.target).closest(".mce-window").length) {
+  //     e.stopImmediatePropagation();
+  //   }
+  // });
 
   // Modal SHOW_DETAILS
   $('.open-issueStatus_showDetailsModal').click(function () {
        $(".modal-body #detaily").html( $(this).attr('data-details') );
-       $(".modal-header #modalDetailsTitle").html( "Details for Issue: " + $(this).attr('data-issue') );
-
+       $(".modal-header #modalDetailsTitle").text( "Details for Issue: " + $(this).attr('data-issue') );
   });
 
   // Fill up Modal EDIT_ISSUE
   $('.open-issueStatus_editModal').click(function () {
-       // var issue = $(this).data('issue');
        $(".modal-body #inpIssue").val( $(this).attr("data-issue") );
        $(".modal-body #inpAuthor").val( $(this).attr("data-author") );
        $(".modal-body #inpDate").val( $(this).attr("data-date_issued") );

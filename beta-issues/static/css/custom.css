@@ -30,7 +30,7 @@ code {
 }
 
 div#issue-panel {margin-top: 50px;}
-div#issue-panel table th#issue {width: 55px;}
+div#issue-panel table th#issue {width: 60px;}
 div#issue-panel table th#details {width: 40px;}
 div#issue-panel table th#date_issued {width: 55px;}
 div#issue-panel table th#date_resolved {width: 55px;}
