@@ -275,22 +275,21 @@ def register_page():
             username = form.username.data
             email = form.email.data
             password = sha256_crypt.encrypt(str(form.password.data))
-            flash("{}, {}, {}".format(username, email, password))
-            # q = User.query.filter_by(username=username).all()
-            # if len(q) != 0:
-            #     flash("That username is already taken, please choose another", 'danger')
-            #     return render_template('register.html', form=form)
+            q = User.query.filter_by(username=username).all()
+            if len(q) != 0:
+                flash("That username is already taken, please choose another", 'danger')
+                return render_template('register.html', form=form)
 
-            # user_add = User(username=username, password=password, email=email)
-            # db.session.add(user_add)
-            # db.session.commit()
+            user_add = User(username=username, password=password, email=email)
+            db.session.add(user_add)
+            db.session.commit()
 
-            # flash("Thanks for registering.", 'success')
+            flash("Thanks for registering.", 'success')
 
-            # session['logged_in'] = True
-            # session['username'] = username
+            session['logged_in'] = True
+            session['username'] = username
 
-            # return redirect(url_for('issue_status'))
+            return redirect(url_for('issue_status'))
 
         return render_template('register.html', form=form)
 
