@@ -1,5 +1,6 @@
 import os
 import sys
+sys.path.append('.')
 from flask import Flask, render_template, flash, request, url_for, redirect, session, abort, Markup
 from werkzeug.utils import secure_filename
 from functools import wraps
@@ -7,8 +8,8 @@ from wtforms import Form, TextField, PasswordField, BooleanField, validators
 from passlib.hash import sha256_crypt
 import datetime
 import gc
-from .models import Issues, User
-from .database import db
+from models import Issues, User
+from database import db
 from sqlalchemy import func
 
 # User scripts
