@@ -82,3 +82,8 @@ input.dataTables_info {font-size: 0.9em; color: lightgray !important;}
 .dataTables_paginate {
   font-size: 0.8em;
 }
+
+.bg-danger-more {
+  background-color: #c9302c;
+  color: #fff;
+}

@@ -85,9 +85,13 @@
                         <span class="glyphicon glyphicon-edit" ></span>
                       </a>
                     </span>
-                    <button name="remove_issue" value="{{ data.issue }}" type="submit" class="btn btn-xs btn-danger" data-toggle=        "tooltip" data-placement="top" title="Remove issue: {{ data.issue }}">
-                      <span class="glyphicon glyphicon-remove"></span>
-                    </button>
+                    <span href="#deleteModal" class="open-issueStatus_deleteModal" data-toggle="modal"
+                          data-issue="{{ data.issue }}"
+                          data-description="{{ data.description }}">
+                      <a data-toggle="tooltip"  title="Delete issue: {{ data.issue }}" class="btn btn-xs btn-danger">
+                        <span class="glyphicon glyphicon-remove" ></span>
+                      </a>
+                    </span>
                   </td>
                 {% endif -%}
               </tr>
@@ -149,12 +153,13 @@
                         <span class="glyphicon glyphicon-edit" ></span>
                       </a>
                     </span>
-                    <a>
-                      <button name="remove_issue" value="{{ data.issue }}" type="submit" class="btn btn-xs btn-danger"
-                              data-toggle="tooltip" data-placement="top" title="Remove issue: {{ data.issue }}">
-                        <span class="glyphicon glyphicon-remove"></span>
-                      </button>
-                    </a>
+                    <span href="#deleteModal" class="open-issueStatus_deleteModal" data-toggle="modal"
+                        data-issue="{{ data.issue }}"
+                        data-description="{{ data.description }}">
+                      <a data-toggle="tooltip"  title="Delete issue: {{ data.issue }}" class="btn btn-xs btn-danger">
+                        <span class="glyphicon glyphicon-remove" ></span>
+                      </a>
+                    </span>
                   </td>
                 {% endif -%}
               </tr>
@@ -212,6 +217,30 @@
   </div>
 </div>
 
+
+<!-- Modal DELETE_ISSUE-->
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-danger-more" style="text-align:center;">
+        <h3 class="modal-title" id="deleteModalLabel">Delete Confirmation</h3>
+      </div>
+      <form action="{{ url_for('issue_modify') }}" method="post" class="form-horizontal">
+        <div class="modal-body">
+          <h4><b>Issue:</b> <span id="inpIssue"></span></h4>
+          <h5><b>Description:</b> <span id="inpDescription"></span></h5>
+        </div>
+        <div class="modal-footer">
+          <input name="remove_issue" type="hidden" class="form-control" id="inpHiddenIssue">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger">Delete</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
 <!-- JavaScript for the Modal EDIT_ISSUE -->
 <script>
 
@@ -227,12 +256,7 @@
       $('#tbl-resolved-issues').show();
   } );
 
-  // // Prevent Bootstrap dialog from blocking focusin
-  // $(document).on('focusin', function(e) {
-  //   if ($(e.target).closest(".mce-window").length) {
-  //     e.stopImmediatePropagation();
-  //   }
-  // });
+
 
   // Modal SHOW_DETAILS
   $('.open-issueStatus_showDetailsModal').click(function () {
@@ -251,5 +275,23 @@
        $(".modal-header #modalEditIssueTitle").text( "Edit Issue: " + $(this).attr("data-issue") );
   });
 
+  // Fill up Modal DELETE_ISSUE
+  $('.open-issueStatus_deleteModal').click(function() {
+    $(".modal-body #inpIssue").html( $(this).attr("data-issue"))
+    $(".modal-body #inpDescription").html( $(this).attr("data-description"))
+    $(".modal-footer #inpHiddenIssue").val( $(this).attr("data-issue"))
+  });
 </script>
+
+<script>
+  // function clicked(e)
+  // {
+  //     if(!confirm('Are you sure you want to DELETE this issue?'))e.preventDefault();
+  // }
+  function clicked(elem) {
+    localStorage.setItem('deleteId', $(elem).attr('data-issue'));
+    $('#deleteModal').modal();
+}
+</script>
+
 {% endblock %}
