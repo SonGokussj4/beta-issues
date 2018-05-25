@@ -48,6 +48,9 @@ table#tbl-resolved-issues > tbody > tr > td:nth-child(2) {
 }
 input.dataTables_info {font-size: 0.9em; color: lightgray !important;}
 
+/* PAGE - Upload release changes */
+table#tbl-resolved-issues-in-db > thead > tr > th:nth-child(5) {width: 40px;}
+
 
 /* Custom modal width*/
 @media screen and (min-width: 768px) {

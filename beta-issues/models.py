@@ -4,6 +4,8 @@ from database import db
 class Issues(db.Model):
     id = db.Column('issue_id', db.Integer, primary_key=True)
     issue = db.Column(db.String(20))
+    filename = db.Column(db.String(80))
+    page_num = db.Column(db.Integer)
     evektor = db.Column(db.Boolean(), default=False)
     description = db.Column(db.Text)
     details = db.Column(db.Text)
