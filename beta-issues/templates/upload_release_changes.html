@@ -60,7 +60,6 @@
     </button>
 
     <div class="collapse" id="collapse-data-in-db" style="padding-bottom: 200px;">
-    {# <div class="collapse in" id="collapse-data-in-db" style="padding-bottom: 200px;"> #}
       <div id="issue-panel" class="panel panel-primary">
         <div class="panel-heading">
           Resolved issues in database <spam class="badge">{{ resolved_db|length }}</spam>
@@ -74,8 +73,6 @@
                   <th>Issue</th>
                   <th>Version</th>
                   <th>Date Resolved</th>
-                  <th>Filename</th>
-                  <th>Page</th>
                 </tr>
               </thead>
               <tbody>
@@ -87,8 +84,6 @@
                   <td>{{ row.issue }}</td>
                   <td>{{ row.version }}</td>
                   <td>{{ row.date_resolved }}</td>
-                  <td>{{ row.filename }}</td>
-                  <td>{{ row.page_num }}</td>
                   {# {% if session.logged_in -%}
                     <td>
                       <span href="#issueStatus_editModal" class="open-issueStatus_editModal" data-toggle="modal"
@@ -121,7 +116,6 @@
       $('#tbl-resolved-issues-in-db').DataTable({
         "pagingType": "simple_numbers",
         "pageLength": 25,
-        "order": [[ 0, 'asc' ]],
       });
   } );
 </script>

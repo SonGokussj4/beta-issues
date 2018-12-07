@@ -1,0 +1,26 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+appdirs = "==1.4.3"
+click = "==6.7"
+itsdangerous = "==0.24"
+passlib = "==1.7.1"
+pyparsing = "==2.2.0"
+six = "==1.10.0"
+Flask = "==0.12.1"
+Flask-WTF = "==0.14.2"
+Jinja2 = "==2.9.6"
+MarkupSafe = "==1.0"
+Werkzeug = "==0.12.1"
+WTForms = "==2.1"
+gunicorn = "*"
+upgrade = "*"
+all = "*"
+
+[requires]
+python_version = "3.6"

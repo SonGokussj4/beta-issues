@@ -1,0 +1,18 @@
+version: '2.1'
+services:
+
+  app:
+    #build:
+    #  context: .
+    #  dockerfile: Dockerfile
+    restart: always
+    #image: dockerizedflaskapp
+    build: .
+    #container_name: myFlaskApp
+    # command: gunicorn -b 8050 app:app
+    ports:
+      - "5001:5001"
+    # expose:
+      # - "8050"
+    volumes:
+      - ./beta-issues:/app

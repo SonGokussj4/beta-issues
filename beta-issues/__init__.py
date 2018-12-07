@@ -1,4 +1,3 @@
-"""Docstring for this module"""
 import os
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.curdir, 'beta-issues')))
@@ -15,7 +14,7 @@ from sqlalchemy import func
 
 # User scripts
 sys.path.append(os.path.abspath(os.path.join(os.path.curdir, 'beta-issues', 'static', 'scripts')))
-from beta_pdf_miner import get_issues_list
+# from beta_pdf_miner import get_issues_list
 
 app = Flask(__name__)
 app.config.from_object(__name__)  # load config from this file, flaskr.py
@@ -156,22 +155,15 @@ def edit_issue():
 @login_required
 def upload_release_changes():
     data = db.session.query(Issues.version, func.count('issue')).group_by('version').all()
-    # data: [('None', 1), ('ANSA v...')]
-    data = [(version, count) for (version, count) in data if version is not None]
-    # versions: [('META v17.0.1', '46'), ('ANSA v17.1.0', '86'), ...]
-    versions = sorted(data, reverse=True)
-    # Return all issues with attr resolved = True
-    resolved_db = Issues.query.filter_by(resolved=True).all()
+    data = [(version, count) for (version, count) in data if version is not None]  # [('None', 1), ('ANSA v...')]
+    versions = sorted(data, reverse=True)  # [('META v17.0.1', '46'), ('ANSA v17.1.0', '86'), ...]
+    resolved_db = Issues.query.filter_by(resolved=True).all()  # return all issues with attr resolved = True
     return render_template('upload_release_changes.html', resolved_db=resolved_db, versions=versions)
 
 
 @app.route('/upload_release_changes/', methods=['GET', 'POST'])
 def upload_changes():
     file_list = request.files.getlist('UploadFiles')
-
-    # DEBUG
-    # flash("file_list: {}".format(file_list), 'info')
-    # return redirect(url_for('upload_release_changes'))
 
     if file_list[0].filename == '':
         flash('No file(s) selected', 'warning')
@@ -183,30 +175,27 @@ def upload_changes():
         filepath = os.path.join(app.config.get('UPLOAD_FOLDER'), filename)
         file.save(filepath)
 
-        try:
-            if ('ansa' in filename.lower() or 'meta' in filename.lower()) and 'release_notes' in filename.lower():
-                issues.extend(get_issues_list(filepath))
-            else:
-                flash("Can't recognize this file: {}. I has to have 'Release Notes' and ANSA or META in it's name...".format(
-                    filename), 'danger')
-                return redirect(request.url)
-            os.remove(filepath)
-        except Exception as e:
-            flash('ERROR: PDF is broken, cannot be uploaded...', 'danger')
+        if 'ansa' in filename.lower() and 'release_notes' in filename.lower():
+            issues.extend(get_issues_list(filepath, 'Ansa'))
+        elif 'meta' in filename.lower() and 'release_notes' in filename.lower():
+            issues.extend(get_issues_list(filepath, 'Meta'))
+        else:
+            flash("Can't recognize this file: {}. I has to have 'Release Notes' and ANSA or META in it's name...".format(
+                filename), 'danger')
+            return redirect(request.url)
+        os.remove(filepath)
 
     # Iterate over found issues in PDF
     count = 0
     for issue_tuple in issues:
-        issue, version, page_num = issue_tuple  # TODO: page_num not implemented yet into database table
+        issue, version = issue_tuple
 
         issue_in_db = Issues.query.filter_by(issue=issue).all()
-        # Not in DB: add issue name, page number, version, date resolved, resolved
+        # Not in DB: add name, version, date resolved, resolved
         if len(issue_in_db) == 0:
             # flash("ADDING Issue: [{}]".format(issue))
             issue_add = Issues(
                 issue=issue,
-                filename=filename,
-                page_num=page_num,
                 version=version,
                 date_resolved=datetime.datetime.today().strftime('%Y-%m-%d'),
                 resolved=True,
@@ -230,8 +219,6 @@ def upload_changes():
                              "<p>Description: {}</p>".format(issue_num, description))
                 flash(msg, 'success')
                 Issues.query.filter_by(issue=issue).update(dict(
-                    filename=filename,
-                    page_num=page_num,
                     version=version,
                     date_resolved=datetime.datetime.today().strftime('%Y-%m-%d'),
                     resolved=True,
@@ -341,4 +328,4 @@ def issue_modify():
 
 
 if __name__ == '__main__':
-    app.run(host='localhost', port=5080, debug=True)
+    app.run(host='localhost', port=5001, debug=True)

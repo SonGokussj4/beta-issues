@@ -37,7 +37,7 @@
 
   <div id="issue-panel" class="panel panel-primary">
     {# <div class="panel-heading">Unresolved Issues <spam class="badge">{{ all_issues['unresolved']|length }}</spam></div> #}
-    <div class="panel-heading">Unresolved Issues <spam class="badge">{{ issues.unresolved|length }}</spam></div>
+    <div class="panel-heading">Unresolved Issues <spam class="badge">{{ issues.resolved|length }}</spam></div>
     <div class="panel-body">
       <form method="post" action="{{ url_for('issue_modify') }}">
         <table id="tbl-unresolved-issues" class="display" data-order='[[ 3, "des" ]]' style="display:none">
